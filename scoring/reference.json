@@ -7,36 +7,58 @@
       "metrics": {
         "work_efficiency_vs_greedy": {
           "higher_is_better": true,
-          "coefficient": 0.0
+          "coefficient": 0.0,
+          "description": "Candidate mean operation-count efficiency relative to the public greedy DeepSeek-style baseline; reported for context but not scored."
         },
         "work_efficiency_vs_frontier_reference": {
           "higher_is_better": true,
-          "coefficient": 1.0
+          "coefficient": 1.0,
+          "description": "Primary machine-independent work-efficiency ratio against the frontier-reference-style zigzag baseline."
         },
         "mean_imbalance_factor": {
           "higher_is_better": true,
-          "coefficient": 0.6
+          "coefficient": 0.5,
+          "description": "Mean GPU load balance ratio across traces; preserves the paper's no-worse-load-balance constraint."
         },
         "valid_fraction": {
           "higher_is_better": true,
-          "coefficient": 0.4
-        },
-        "reported_runtime_ms": {
-          "higher_is_better": false,
-          "coefficient": 0.0
+          "coefficient": 0.35,
+          "description": "Fraction of slice traces with structurally valid placement artifacts."
         },
         "mean_operation_count": {
           "higher_is_better": false,
-          "coefficient": -0.2
+          "coefficient": -0.2,
+          "description": "Mean machine-independent rebalance work; penalizes improvements that only win by increasing counted work."
         },
         "num_traces": {
           "higher_is_better": true,
-          "coefficient": 0.0
+          "coefficient": 0.0,
+          "description": "Number of traces scored in this slice; emitted for auditability and not scored."
         },
         "complete_fraction": {
           "higher_is_better": true,
           "coefficient": 0.4,
           "description": "Fraction of required slice traces for which the method emitted a placement artifact; catches methods that skip difficult traces."
+        },
+        "family_imbalance_floor": {
+          "higher_is_better": true,
+          "coefficient": 0.25,
+          "description": "Worst family-level mean load balance; catches methods tuned to one workload family while regressing on another."
+        },
+        "family_imbalance_spread": {
+          "higher_is_better": false,
+          "coefficient": -0.15,
+          "description": "Gap between best and worst family-level mean load balance; penalizes uneven behavior across workload families."
+        },
+        "high_skew_mean_imbalance_factor": {
+          "higher_is_better": true,
+          "coefficient": 0.25,
+          "description": "Mean load balance on the higher-skew half of the slice; catches methods that only handle easy load distributions."
+        },
+        "high_skew_mean_operation_count": {
+          "higher_is_better": false,
+          "coefficient": -0.1,
+          "description": "Mean counted rebalance work on higher-skew traces; catches hidden work blowups on difficult load distributions."
         },
         "min_imbalance_factor": {
           "higher_is_better": true,

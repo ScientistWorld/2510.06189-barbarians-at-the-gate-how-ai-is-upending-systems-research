@@ -43,6 +43,12 @@ def percentile(values: list[float], q: float) -> float:
     return ordered[rank]
 
 
+def load_skew(trace: dict) -> float:
+    loads = [float(x) for x in trace["loads"]]
+    avg_load = mean(loads)
+    return max(loads) / avg_load if avg_load > 0 else 0.0
+
+
 def missing_operation_penalty(trace: dict) -> float:
     return float(trace["num_replicas"]) * 10.0
 
@@ -79,22 +85,36 @@ def evaluate_artifact(selected_traces: list[dict], artifact_path: Path) -> dict[
 
     imbalances: list[float] = []
     operation_counts: list[float] = []
+    imbalances_by_family: dict[str, list[float]] = {}
+    high_skew_imbalances: list[float] = []
+    high_skew_operation_counts: list[float] = []
+    skew_threshold = percentile([load_skew(trace) for trace in selected_traces], 0.5)
     valid_count = 0
     complete_count = 0
 
     for trace in selected_traces:
         trace_id = str(trace["id"])
+        family = str(trace["family"])
         item = outputs_by_trace.get(trace_id)
         operation_count, has_valid_operation_count = safe_operation_count(item, trace)
         operation_counts.append(operation_count)
+        is_high_skew = load_skew(trace) >= skew_threshold
 
         if item is None:
             imbalances.append(0.0)
+            imbalances_by_family.setdefault(family, []).append(0.0)
+            if is_high_skew:
+                high_skew_imbalances.append(0.0)
+                high_skew_operation_counts.append(operation_count)
             continue
 
         complete_count += 1
         if trace_id in duplicate_ids or not has_valid_operation_count:
             imbalances.append(0.0)
+            imbalances_by_family.setdefault(family, []).append(0.0)
+            if is_high_skew:
+                high_skew_imbalances.append(0.0)
+                high_skew_operation_counts.append(operation_count)
             continue
 
         try:
@@ -106,14 +126,32 @@ def evaluate_artifact(selected_traces: list[dict], artifact_path: Path) -> dict[
             )
         except Exception:
             imbalances.append(0.0)
+            imbalances_by_family.setdefault(family, []).append(0.0)
+            if is_high_skew:
+                high_skew_imbalances.append(0.0)
+                high_skew_operation_counts.append(operation_count)
             continue
 
-        imbalances.append(imbalance_factor(gpu_loads))
+        imbalance = imbalance_factor(gpu_loads)
+        imbalances.append(imbalance)
+        imbalances_by_family.setdefault(family, []).append(imbalance)
+        if is_high_skew:
+            high_skew_imbalances.append(imbalance)
+            high_skew_operation_counts.append(operation_count)
         valid_count += 1
 
     denominator = max(1, len(selected_traces))
+    family_mean_imbalances = [mean(values) for values in imbalances_by_family.values()]
     return {
         "complete_fraction": complete_count / denominator,
+        "family_imbalance_floor": min(family_mean_imbalances) if family_mean_imbalances else 0.0,
+        "family_imbalance_spread": (
+            max(family_mean_imbalances) - min(family_mean_imbalances)
+            if family_mean_imbalances
+            else 0.0
+        ),
+        "high_skew_mean_imbalance_factor": mean(high_skew_imbalances),
+        "high_skew_mean_operation_count": mean(high_skew_operation_counts),
         "mean_imbalance_factor": mean(imbalances),
         "mean_operation_count": mean(operation_counts),
         "min_imbalance_factor": min(imbalances) if imbalances else 0.0,
