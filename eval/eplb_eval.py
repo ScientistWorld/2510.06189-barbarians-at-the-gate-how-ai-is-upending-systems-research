@@ -41,6 +41,17 @@ def evaluate_artifact(traces_by_id: dict[str, dict], artifact_path: Path) -> dic
     }
 
 
+def discover_artifacts(outputs_dir: Path) -> dict[str, Path]:
+    artifacts: dict[str, Path] = {}
+    for path in sorted(outputs_dir.glob("*.json")):
+        artifact = load_traces(path)
+        method_name = artifact.get("method", path.stem)
+        if not isinstance(method_name, str) or not method_name:
+            raise ValueError(f"{path} has no usable method name")
+        artifacts[method_name] = path
+    return artifacts
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--traces", default="data/eplb_traces.json")
@@ -51,18 +62,25 @@ def main() -> None:
     traces = load_traces(args.traces)["traces"]
     traces_by_id = {trace["id"]: trace for trace in traces}
     outputs_dir = Path(args.outputs_dir)
-    method_files = {
-        "greedy_deepseek": outputs_dir / "greedy_deepseek.json",
-        "evolved_zigzag": outputs_dir / "evolved_zigzag.json",
-    }
+    method_files = discover_artifacts(outputs_dir)
+    if "greedy_deepseek" not in method_files:
+        raise FileNotFoundError(
+            "outputs/eplb/greedy_deepseek.json is required so work_efficiency_vs_greedy "
+            "is computed against a fresh baseline. Run scripts/baseline.sh or scripts/reproduce.sh."
+        )
     results = {}
     for name, path in method_files.items():
-        if path.exists():
-            results[name] = evaluate_artifact(traces_by_id, path)
+        results[name] = evaluate_artifact(traces_by_id, path)
     baseline_ops = results.get("greedy_deepseek", {}).get("mean_operation_count")
     if baseline_ops and baseline_ops > 0:
         for metrics in results.values():
             metrics["work_efficiency_vs_greedy"] = baseline_ops / metrics["mean_operation_count"]
+    frontier_ops = results.get("frontier_reference_zigzag", {}).get("mean_operation_count")
+    if frontier_ops and frontier_ops > 0:
+        for metrics in results.values():
+            metrics["work_efficiency_vs_frontier_reference"] = (
+                frontier_ops / metrics["mean_operation_count"]
+            )
 
     write_json(args.scores, {"experiments": {"eplb_moe_placement": {"results": results}}})
 

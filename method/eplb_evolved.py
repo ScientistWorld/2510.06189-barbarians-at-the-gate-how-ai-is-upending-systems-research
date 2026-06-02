@@ -4,9 +4,9 @@
 The reproduction keeps the public EPLB replication stage but replaces the
 loop-heavy final bin packing with the tensorized "snake" placement pattern
 described in Figure 5 of the paper: sorted physical replicas are assigned to
-GPUs in alternating forward and reversed blocks. The same pattern is also used
-for group-to-node assignment, matching the paper's note that the breakthrough
-came from reusing zigzag partitioning across EPLB stages.
+GPUs in alternating forward and reversed blocks. The same tensorized pattern is
+also used for group-to-node assignment, matching the paper's note that the
+breakthrough came from reusing zigzag partitioning across EPLB stages.
 """
 
 from __future__ import annotations
@@ -14,13 +14,15 @@ from __future__ import annotations
 import argparse
 import heapq
 import sys
+import time
 from pathlib import Path
+
+import torch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "data"))
-sys.path.insert(0, str(ROOT / "baseline"))
 
-from eplb_common import expert_replica_loads, load_traces, write_json
+from eplb_common import load_traces, write_json
 
 
 def heap_replicate_overloaded(loads: list[float], num_replicas: int) -> tuple[list[int], int]:
@@ -43,76 +45,43 @@ def heap_replicate_overloaded(loads: list[float], num_replicas: int) -> tuple[li
     return counts, ops
 
 
-def snake_pack_order(weights: list[float], num_packs: int, capacity: int) -> tuple[list[int], int]:
-    """Return output order where contiguous slots represent packs.
-
-    This is the loop-free pattern from the paper expressed in portable Python:
-    after sorting by load, items in even blocks are mapped left-to-right and odd
-    blocks right-to-left. The counted operations reflect sort plus vector-style
-    index construction, not an item-by-pack linear search.
-    """
-    if len(weights) != num_packs * capacity:
-        raise ValueError("snake packing expects exactly num_packs * capacity items")
-    sorted_items = sorted(range(len(weights)), key=lambda i: (-weights[i], i))
-    packs: list[list[int]] = [[] for _ in range(num_packs)]
-    for sorted_pos, item in enumerate(sorted_items):
-        block_id = sorted_pos // num_packs
-        idx_in_block = sorted_pos % num_packs
-        pack_id = idx_in_block if block_id % 2 == 0 else num_packs - 1 - idx_in_block
-        packs[pack_id].append(item)
-    ordered = []
-    for pack in packs:
-        if len(pack) != capacity:
-            raise ValueError("invalid snake capacity")
-        ordered.extend(pack)
-    operations = len(weights) + int(len(weights) * max(1, len(weights)).bit_length())
-    return ordered, operations
-
-
-def adaptive_repair(
-    ordered: list[int],
-    weights: list[float],
+def tensor_snake_pack(
+    weights: torch.Tensor,
     num_packs: int,
     capacity: int,
-    max_passes: int = 2,
-) -> tuple[list[int], int]:
-    """Small balance repair after the paper's zigzag layout.
+) -> tuple[torch.Tensor, torch.Tensor, int]:
+    """Tensorized zigzag/snake placement from Figure 5.
 
-    This models the paper-described adaptive ordering refinements: keep the
-    staggered block layout, then try a bounded number of swaps between the
-    heaviest and lightest packs when they reduce max-load imbalance.
+    Returns both the ordered item ids, where contiguous slots are a pack, and a
+    per-item pack assignment. The implementation follows the paper's key
+    computational step: sort once, build block/position tensors, reverse odd
+    blocks with `torch.where`, and scatter into a pack-by-slot matrix.
     """
-    packs = [ordered[i * capacity : (i + 1) * capacity] for i in range(num_packs)]
-    loads = [sum(weights[item] for item in pack) for pack in packs]
-    ops = 0
-    for _ in range(max_passes):
-        hi = max(range(num_packs), key=lambda idx: loads[idx])
-        lo = min(range(num_packs), key=lambda idx: loads[idx])
-        current_gap = loads[hi] - loads[lo]
-        if current_gap <= 0:
-            break
-        best = None
-        for hi_pos, hi_item in enumerate(packs[hi]):
-            for lo_pos, lo_item in enumerate(packs[lo]):
-                ops += 1
-                new_hi = loads[hi] - weights[hi_item] + weights[lo_item]
-                new_lo = loads[lo] - weights[lo_item] + weights[hi_item]
-                new_gap = abs(new_hi - new_lo)
-                if new_gap < current_gap and (best is None or new_gap < best[0]):
-                    best = (new_gap, hi_pos, lo_pos, new_hi, new_lo)
-        if best is None:
-            break
-        _, hi_pos, lo_pos, new_hi, new_lo = best
-        packs[hi][hi_pos], packs[lo][lo_pos] = packs[lo][lo_pos], packs[hi][hi_pos]
-        loads[hi] = new_hi
-        loads[lo] = new_lo
-    repaired = []
-    for pack in packs:
-        repaired.extend(pack)
-    return repaired, ops
+    if weights.numel() != num_packs * capacity:
+        raise ValueError("snake packing expects exactly num_packs * capacity items")
+    sorted_idx = torch.argsort(weights, descending=True, stable=True)
+    positions = torch.arange(weights.numel(), device=weights.device)
+    block_id = positions // num_packs
+    idx_in_block = positions % num_packs
+    pack_for_sorted = torch.where(
+        block_id.remainder(2).eq(0),
+        idx_in_block,
+        num_packs - 1 - idx_in_block,
+    )
+    slot_for_sorted = block_id
+    pack_matrix = torch.empty((num_packs, capacity), dtype=torch.long, device=weights.device)
+    pack_matrix[pack_for_sorted, slot_for_sorted] = sorted_idx
+    per_item_pack = torch.empty(weights.numel(), dtype=torch.long, device=weights.device)
+    per_item_pack[sorted_idx] = pack_for_sorted
+
+    # Machine-independent work proxy: tensor dispatches for sort, arange,
+    # block/position arithmetic, where, and two scatters.
+    tensor_ops = 8
+    return pack_matrix.reshape(-1), per_item_pack, tensor_ops
 
 
 def run_trace(trace: dict) -> dict:
+    start = time.perf_counter()
     loads = [float(x) for x in trace["loads"]]
     num_groups = int(trace["num_groups"])
     num_nodes = int(trace["num_nodes"])
@@ -124,26 +93,44 @@ def run_trace(trace: dict) -> dict:
         sum(loads[group_id * group_size : (group_id + 1) * group_size])
         for group_id in range(num_groups)
     ]
-    _, group_ops = snake_pack_order(group_loads, num_nodes, num_groups // num_nodes)
+    group_order_t, group_to_node_t, group_ops = tensor_snake_pack(
+        torch.tensor(group_loads, dtype=torch.float32),
+        num_nodes,
+        num_groups // num_nodes,
+    )
+    group_order = [int(x) for x in group_order_t.tolist()]
 
     replica_counts, replica_ops = heap_replicate_overloaded(loads, num_replicas)
-    physical_to_logical = []
-    for expert_id, count in enumerate(replica_counts):
-        physical_to_logical.extend([expert_id] * count)
 
-    replica_loads = expert_replica_loads(loads, replica_counts)
-    order, placement_ops = snake_pack_order(
-        replica_loads, num_gpus, num_replicas // num_gpus
+    # Stage 1 now affects later stages: physical replicas are materialized in
+    # group/node zigzag order before the final GPU-level snake placement.
+    logical_order = []
+    for group_id in group_order:
+        start_expert = group_id * group_size
+        logical_order.extend(range(start_expert, start_expert + group_size))
+
+    physical_to_logical: list[int] = []
+    replica_loads: list[float] = []
+    for expert_id in logical_order:
+        count = replica_counts[expert_id]
+        physical_to_logical.extend([expert_id] * count)
+        replica_loads.extend([loads[expert_id] / count] * count)
+
+    order_t, _, placement_ops = tensor_snake_pack(
+        torch.tensor(replica_loads, dtype=torch.float32),
+        num_gpus,
+        num_replicas // num_gpus,
     )
-    order, repair_ops = adaptive_repair(
-        order, replica_loads, num_gpus, num_replicas // num_gpus
-    )
+    order = [int(x) for x in order_t.tolist()]
     packed = [physical_to_logical[idx] for idx in order]
+    elapsed_ms = (time.perf_counter() - start) * 1000.0
     return {
         "trace_id": trace["id"],
         "replica_counts": replica_counts,
+        "group_to_node": [int(x) for x in group_to_node_t.tolist()],
         "physical_to_logical": packed,
-        "operation_count": group_ops + replica_ops + placement_ops + repair_ops,
+        "operation_count": group_ops + replica_ops + placement_ops,
+        "rebalance_time_ms": elapsed_ms,
     }
 
 

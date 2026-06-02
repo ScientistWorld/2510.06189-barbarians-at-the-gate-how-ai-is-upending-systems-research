@@ -6,7 +6,7 @@ The paper argues for AI-Driven Research for Systems (ADRS): use LLM-driven itera
 
 ## Approach
 
-For EPLB, the algorithmic pipeline has three stages: distribute expert groups across nodes, create replicas for overloaded experts, and assign physical replicas to GPUs. The initial program uses greedy bin packing. The evolved policy keeps the overloaded-expert replication idea but replaces loop-heavy placement with a staggered snake/zigzag assignment that sorts replicas and alternates pack direction across blocks. The paper emphasizes that applying this zigzag partitioning across multiple EPLB stages was the key improvement.
+For EPLB, the algorithmic pipeline has three stages: distribute expert groups across nodes, create replicas for overloaded experts, and assign physical replicas to GPUs. The initial program uses greedy bin packing. The evolved policy keeps the overloaded-expert replication idea but replaces loop-heavy placement with a PyTorch tensorized snake/zigzag assignment that sorts replicas and alternates pack direction across blocks. This reproduction makes the group-to-node zigzag order feed into physical replica materialization, then applies the same tensorized placement at the GPU stage. The paper emphasizes that applying this zigzag partitioning across multiple EPLB stages was the key improvement.
 
 ## Main Claims
 

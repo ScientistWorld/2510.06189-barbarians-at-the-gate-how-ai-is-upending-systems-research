@@ -6,7 +6,8 @@
 - Implemented the EPLB case study from Section 5.2 of the paper.
 - `data/generate_eplb_traces.py` creates deterministic ShareGPT/GSM8K-style heavy-tailed expert-load traces.
 - `baseline/eplb_baseline.py` runs the public DeepSeek-style greedy bin-packing EPLB pipeline.
-- `method/eplb_evolved.py` implements the paper-described overloaded-expert replication stage with a lower-work heap update and a snake/zigzag placement with bounded adaptive repair.
+- `baseline/eplb_frontier_reference.py` implements the paper-described frontier-reference tensorized snake placement baseline.
+- `method/eplb_evolved.py` implements the paper-described overloaded-expert replication stage with a lower-work heap update and PyTorch tensorized snake/zigzag placement reused across group and GPU placement stages.
 - `eval/eplb_eval.py` independently reads output artifacts from `outputs/eplb/` and writes `scoring/scores.json`.
 
 ## Results
@@ -30,10 +31,11 @@ Final local verification on 2026-06-02: `bash scripts/reproduce.sh && python val
 ## Issues
 
 - Exact ShareGPT/GSM8K expert-load traces from the paper are not released.
-- The non-public frontier-lab reference implementation is unavailable; `reference.json` records its paper-reported target but the environment currently scores the public greedy baseline and reproduced evolved method.
+- The non-public frontier-lab reference implementation is unavailable; this workspace now includes a faithful frontier-reference-style tensorized zigzag baseline reconstructed from the paper description.
 - Raw paper runtime numbers are hardware-dependent, so evaluation replaces them with counted operations.
 - The reproduced efficiency gain is smaller than the paper's reported runtime gain, but it is measured on a scaled deterministic trace substitute and still supports the core lower-work-with-balance claim.
-- Corrected the primary reference ratio from a cross-baseline derived value to the paper's Table 1 EPLB target of 2.0x faster than the internal implementation.
+- Corrected the primary reference metric to `work_efficiency_vs_frontier_reference`, matching the Section 5.2 comparison of the evolved method against the frontier reference implementation.
+- Continuation audit found the previous method used Python snake loops and discarded stage-1 placement. This has been fixed by using PyTorch tensor operations and feeding group zigzag order into replica materialization.
 
 ## Deviations from Paper
 

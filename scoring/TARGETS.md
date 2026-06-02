@@ -3,7 +3,8 @@
 ## Primary: eplb_moe_placement
 
 Tests whether an expert-placement policy reduces rebalance work on changing MoE expert-load traces.
-- **Metric**: `work_efficiency_vs_greedy` (higher is better)
+- **Metric**: `work_efficiency_vs_frontier_reference` (higher is better)
+- **Secondary benefit**: `work_efficiency_vs_greedy` (higher is better)
 
 ## Constraint: eplb_moe_placement
 
