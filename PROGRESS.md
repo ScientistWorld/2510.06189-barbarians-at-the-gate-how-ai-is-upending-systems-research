@@ -35,6 +35,12 @@ Validation follow-up: `reference.json` now separates paper wall-clock values (`r
 
 Continuation audit on 2026-06-02 confirmed the core implementation and evaluator separation. The only issue found was a scoring-contract mismatch that treated greedy wall-clock speedups as comparable to the operation-count proxy. This was fixed by declaring `work_efficiency_vs_greedy` as a zero-weight diagnostic metric and keeping the paper-reference target focused on `work_efficiency_vs_frontier_reference`.
 
+Final CPU container verification job `a288216f-231` completed with exit code 0. It reran `scripts/reproduce.sh` and `python validate.py --compare`; all scoring and structure checks passed. The final reproduced results are:
+
+- `evolved_zigzag`: `work_efficiency_vs_frontier_reference=6.711`, `work_efficiency_vs_greedy=9.211`, `mean_operation_count=304.0`, `mean_imbalance_factor=0.9888`, `valid_fraction=1.0`
+- `frontier_reference_zigzag`: `work_efficiency_vs_frontier_reference=1.0`, `mean_operation_count=2040.0`, `mean_imbalance_factor=0.9888`, `valid_fraction=1.0`
+- `greedy_deepseek`: `work_efficiency_vs_frontier_reference=0.729`, `mean_operation_count=2800.0`, `mean_imbalance_factor=0.9985`, `valid_fraction=1.0`
+
 ## Remaining
 
 - Potential extension: implement a separate paper-described non-public reference zigzag baseline for `frontier_reference_zigzag`.

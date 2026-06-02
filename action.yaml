@@ -1,8 +1,8 @@
 # IMPORTANT: Once you set action to 'submit' or 'done', STOP immediately.
 # Do NOT sleep, poll, or wait for jobs. The system reads this file
 # only after your turn ends. Sleeping blocks the entire pipeline.
-action: submit
+action: done
 gpus: 0
-test: true
+test: false
 milestone: core_claim
-notes: "Continuation audit restored core_claim after fixing scoring contract; CPU container job reruns scripts/reproduce.sh and validate.py --compare."
+notes: "Core claim restored and verified by CPU container job a288216f-231; reproduction, evaluation, and scoring contract all pass."

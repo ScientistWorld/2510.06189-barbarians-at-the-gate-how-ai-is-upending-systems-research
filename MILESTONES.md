@@ -15,3 +15,7 @@
 ### [2026-06-02 16:55] - core_claim
 - Continuation audit confirmed the implementation is not a surrogate: it directly implements overloaded-expert replication and tensorized snake/zigzag placement from the paper's EPLB case study.
 - Corrected the scoring contract so paper-reference targets compare the evolved policy against the frontier-reference baseline, while greedy operation-count speedup remains a diagnostic metric.
+
+### [2026-06-02 17:09] - core_claim
+- CPU container verification job `a288216f-231` completed successfully.
+- `scripts/reproduce.sh` regenerated EPLB outputs and `python validate.py --compare` passed all scoring and structure checks.
