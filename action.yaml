@@ -1,3 +1,8 @@
-action: done
-milestone: core_claim
-notes: "Fixed reference.json primary metric to the paper Table 1 EPLB target of 2.0x, revalidated successfully, and retained core_claim results from CPU job e6526d2b-756."
+# IMPORTANT: Once you set action to 'submit' or 'done', STOP immediately.
+# Do NOT sleep, poll, or wait for jobs. The system reads this file
+# only after your turn ends. Sleeping blocks the entire pipeline.
+action: pending
+gpus: 1
+test: false
+milestone: method_runs
+notes: ""
