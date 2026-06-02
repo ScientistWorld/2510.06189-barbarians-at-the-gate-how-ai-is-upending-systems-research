@@ -3,14 +3,14 @@
     "eplb_moe_placement": {
       "results": {
         "evolved_zigzag": {
-          "mean_imbalance_factor": 0.9948224348931836,
+          "mean_imbalance_factor": 0.9948224348931838,
           "mean_operation_count": 1384.0,
           "num_traces": 42.0,
           "valid_fraction": 1.0,
           "work_efficiency_vs_greedy": 2.023121387283237
         },
         "greedy_deepseek": {
-          "mean_imbalance_factor": 0.9985265611926354,
+          "mean_imbalance_factor": 0.9985265611926353,
           "mean_operation_count": 2800.0,
           "num_traces": 42.0,
           "valid_fraction": 1.0,

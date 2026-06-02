@@ -20,6 +20,8 @@ The paper reports the initial greedy EPLB at about 540 ms with imbalance factor 
 
 Validation note: the paper is internally inconsistent about the EPLB speedup, with Table 1 reporting "2x faster runtime vs. internal implementation" and Section 5.2 prose reporting 5.0x from 19.6 ms to 3.7 ms. `reference.json` uses the table's 2.0x headline for the primary machine-independent work-efficiency target because the reproduced benchmark scores relative work reduction rather than wall-clock time. An earlier derived value of `540/3.7=145.946` mixed the initial public greedy runtime with the evolved runtime and overstated the primary comparison target for this benchmark.
 
+Final local verification on 2026-06-02: `bash scripts/reproduce.sh && python validate.py --compare` passed, with `evolved_zigzag` reaching `work_efficiency_vs_greedy=2.023`, `mean_imbalance_factor=0.9948`, and `valid_fraction=1.0`.
+
 ## Remaining
 
 - Potential extension: implement a separate paper-described non-public reference zigzag baseline for `frontier_reference_zigzag`.
