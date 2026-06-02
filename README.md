@@ -56,19 +56,19 @@ For EPLB, the algorithmic pipeline has three stages: distribute expert groups ac
 ## Metrics
 
 - `mean_imbalance_factor`: average over traces of `(mean GPU load) / (max GPU load)`. Higher is better; 1.0 is perfectly balanced.
-- `work_efficiency_vs_greedy`: greedy baseline mean operation count divided by candidate mean operation count. Higher is better. This replaces wall-clock runtime with a machine-independent work proxy.
-- `work_efficiency_vs_frontier_reference`: stronger reference baseline mean operation count divided by candidate mean operation count, multiplied by the candidate's measured balance. Higher is better and is the primary metric because the paper's headline EPLB result compares against a stronger reference implementation.
+- `work_efficiency_vs_greedy`: lightweight reference mean operation count divided by candidate mean operation count. Higher is better. This replaces wall-clock runtime with a machine-independent work proxy.
+- `work_efficiency_vs_frontier_reference`: stronger benchmark-reference mean operation count divided by candidate mean operation count, multiplied by the candidate's measured balance. Higher is better and is the primary metric because the target problem is to reduce rebalance work without losing placement quality.
 - `mean_operation_count`: counted algorithmic operations for group packing, replication, and placement. Lower is better.
 - `valid_fraction`: fraction of required traces whose placement has the requested number of replicas, valid expert ids, and positive replica count for every logical expert. Higher is better.
 - `complete_fraction`: fraction of required traces for which a method emits an artifact. Higher is better.
 
 ## Baselines and Targets
 
-The baselines are a simple public EPLB policy and a stronger reference policy reconstructed from the paper's description. The paper reports an initial public baseline runtime of about 540 ms with imbalance factor 0.66, a non-public reference runtime of 19.6 ms with the same imbalance, and a discovered-policy runtime of 3.7 ms with the same imbalance. This environment keeps those wall-clock values as `reported_runtime_ms`, but the scored speed metrics use operation-count ratios from the reproducible benchmark because wall-clock runtime is hardware-dependent.
+Reference artifacts provide two fixed comparison anchors: one lightweight anchor for basic sanity checking and one stronger anchor for the primary score. Published wall-clock values are kept only as unscored context in `reported_runtime_ms`; the scored work metrics use operation-count ratios from the reproducible benchmark because wall-clock runtime is hardware-dependent.
 
 ## Evaluation Protocol
 
-Run `bash scripts/reproduce.sh` to generate deterministic expert-load traces, run the baseline and candidate method, and write `scoring/scores.json`. Standalone evaluation is `bash scripts/evaluate.sh`; it reads placement artifacts from `outputs/eplb/` and does not import from `method/`.
+Run `bash scripts/reproduce.sh` to generate deterministic expert-load traces, produce placement artifacts, and write `scoring/scores.json`. Standalone evaluation is `bash scripts/evaluate.sh`; it reads placement artifacts from `outputs/eplb/` and does not import from any candidate method implementation.
 
 ---
 
@@ -289,6 +289,45 @@ Run `bash scripts/reproduce.sh` to generate deterministic expert-load traces, ru
 ### [2026-06-02 17:58] - core_claim
 - Final verifier CPU job `371d3b15-229` completed successfully after the evaluator hardening pass.
 - Hardened scoring now penalizes missing trace outputs, emits completeness and robustness metrics, and still supports the core EPLB claim.
+
+</details>
+
+### Iteration 9: gpt-5.5 (verifier)
+- **Milestone**: `core_claim` | **Status**: done
+- **Working time**: 7m | **GPU**: 0.0h
+- **Jobs**: 6 total (6 completed, 0 failed)
+
+<details>
+<summary>Progress Log</summary>
+
+### [2026-06-02 16:04] - method_runs
+- The EPLB pipeline ran end-to-end on deterministic MoE expert-load traces.
+- Generated greedy baseline, frontier-reference zigzag baseline, evolved zigzag artifacts, and reusable scores.
+
+### [2026-06-02 16:30] - core_claim
+- Reproduced the paper's EPLB core claim on a scaled deterministic trace substitute.
+- The evolved tensorized zigzag policy reduced mean operation count versus the frontier-reference zigzag baseline while preserving valid placements and comparable load balance.
+
+### [2026-06-02 16:55] - core_claim
+- Continuation audit confirmed the implementation is not a surrogate: it directly implements overloaded-expert replication and tensorized snake/zigzag placement from the paper's EPLB case study.
+- Corrected the scoring contract so paper-reference targets compare the evolved policy against the frontier-reference baseline, while greedy operation-count speedup remains a diagnostic metric.
+
+### [2026-06-02 17:09] - core_claim
+- CPU container verification job `a288216f-231` completed successfully.
+- `scripts/reproduce.sh` regenerated EPLB outputs and `python validate.py --compare` passed all scoring and structure checks.
+
+### [2026-06-02 17:58] - core_claim
+- Final verifier CPU job `371d3b15-229` completed successfully after the evaluator hardening pass.
+- Hardened scoring now penalizes missing trace outputs, emits completeness and robustness metrics, and still supports the core EPLB claim.
+
+### [2026-06-02 18:05] - core_claim
+- Wired the method, baseline, and reproduction scripts to regenerate `scores.json`, `scores_train.json`, and `scores_test.json` from fresh artifacts.
+- Prepared a CPU container verification job for the train/test split; `core_claim_plus` will only be claimed after that job completes successfully.
+
+### [2026-06-02 18:20] - core_claim
+- Final verification passed `python validate.py --compare`; eval/method separation, shared-path checks, and train/test wiring are valid.
+- Sanitized method-agnostic evaluation documentation so from-scratch agents see the task and scoring contract without solution details.
+- Kept milestone at `core_claim` because the core EPLB claim is supported on deterministic synthetic traces, with the exact paper traces and non-public implementation still unavailable.
 
 </details>
 
