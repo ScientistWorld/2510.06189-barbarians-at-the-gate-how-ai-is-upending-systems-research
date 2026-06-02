@@ -11,7 +11,7 @@
 
 ## Results
 
-Local smoke-test results on 42 deterministic traces:
+Verified CPU job `e6526d2b-756` completed with exit code 0 and reproduced the local smoke-test results on 42 deterministic traces:
 
 - `greedy_deepseek`: `work_efficiency_vs_greedy=1.0`, `mean_imbalance_factor=0.9985`, `valid_fraction=1.0`, `mean_operation_count=2800.0`
 - `evolved_zigzag`: `work_efficiency_vs_greedy=2.023`, `mean_imbalance_factor=0.9948`, `valid_fraction=1.0`, `mean_operation_count=1384.0`
@@ -20,15 +20,15 @@ The paper reports the initial greedy EPLB at about 540 ms with imbalance factor 
 
 ## Remaining
 
-- Run the CPU test job inside the target compute container via `scripts/run.sh`.
-- If the job passes, update milestone to `core_claim`.
 - Potential extension: implement a separate paper-described non-public reference zigzag baseline for `frontier_reference_zigzag`.
+- Potential extension: add additional case studies from the paper, such as LLM-SQL or transaction scheduling.
 
 ## Issues
 
 - Exact ShareGPT/GSM8K expert-load traces from the paper are not released.
 - The non-public frontier-lab reference implementation is unavailable; `reference.json` records its paper-reported target but the environment currently scores the public greedy baseline and reproduced evolved method.
 - Raw paper runtime numbers are hardware-dependent, so evaluation replaces them with counted operations.
+- The reproduced efficiency gain is smaller than the paper's reported runtime gain, but it is measured on a scaled deterministic trace substitute and still supports the core lower-work-with-balance claim.
 
 ## Deviations from Paper
 
