@@ -3,17 +3,27 @@
     "eplb_moe_placement": {
       "results": {
         "evolved_zigzag": {
-          "mean_imbalance_factor": 0.9948224348931838,
-          "mean_operation_count": 1384.0,
+          "mean_imbalance_factor": 0.9888192050222312,
+          "mean_operation_count": 304.0,
           "num_traces": 42.0,
           "valid_fraction": 1.0,
-          "work_efficiency_vs_greedy": 2.023121387283237
+          "work_efficiency_vs_frontier_reference": 6.7105263157894735,
+          "work_efficiency_vs_greedy": 9.210526315789474
+        },
+        "frontier_reference_zigzag": {
+          "mean_imbalance_factor": 0.9888192050222312,
+          "mean_operation_count": 2040.0,
+          "num_traces": 42.0,
+          "valid_fraction": 1.0,
+          "work_efficiency_vs_frontier_reference": 1.0,
+          "work_efficiency_vs_greedy": 1.3725490196078431
         },
         "greedy_deepseek": {
-          "mean_imbalance_factor": 0.9985265611926353,
+          "mean_imbalance_factor": 0.9985265611926354,
           "mean_operation_count": 2800.0,
           "num_traces": 42.0,
           "valid_fraction": 1.0,
+          "work_efficiency_vs_frontier_reference": 0.7285714285714285,
           "work_efficiency_vs_greedy": 1.0
         }
       }
