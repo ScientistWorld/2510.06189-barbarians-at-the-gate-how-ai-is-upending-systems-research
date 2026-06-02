@@ -1,5 +1,5 @@
-action: done
+action: submit
 gpus: 0
-test: false
+test: true
 milestone: core_claim
-notes: "Final verification passed after hardened evaluator regeneration; workspace is ready for gym use at core_claim."
+notes: "Verify tightened EPLB reproduction contract: regenerate all-trace, train, and held-out test scores from fresh artifacts and run validate.py --compare."

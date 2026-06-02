@@ -10,3 +10,5 @@ python baseline/eplb_baseline.py --traces data/eplb_traces.json --output outputs
 python baseline/eplb_frontier_reference.py --traces data/eplb_traces.json --output outputs/eplb/frontier_reference_zigzag.json
 python method/eplb_evolved.py --traces data/eplb_traces.json --output outputs/eplb/evolved_zigzag.json
 bash scripts/evaluate.sh
+bash scripts/evaluate_train.sh
+bash scripts/evaluate_test.sh

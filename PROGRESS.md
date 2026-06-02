@@ -9,6 +9,7 @@
 - `baseline/eplb_frontier_reference.py` implements the paper-described frontier-reference tensorized snake placement baseline.
 - `method/eplb_evolved.py` implements the paper-described overloaded-expert replication stage with a lower-work heap update and PyTorch tensorized snake/zigzag placement reused across group and GPU placement stages.
 - `eval/eplb_eval.py` independently reads output artifacts from `outputs/eplb/` and writes `scoring/scores.json`.
+- `scripts/reproduce.sh`, `scripts/method.sh`, and `scripts/baseline.sh` now regenerate the all-trace score plus the visible train and held-out test score files from fresh placement artifacts.
 
 ## Results
 
@@ -47,10 +48,13 @@ Final verifier CPU job `371d3b15-229` completed with exit code 0 after the main 
 - `frontier_reference_zigzag`: `work_efficiency_vs_frontier_reference=0.989`, `mean_operation_count=2040.0`, `mean_imbalance_factor=0.9888`, `valid_fraction=1.0`, `complete_fraction=1.0`
 - `greedy_deepseek`: `work_efficiency_vs_frontier_reference=0.727`, `mean_operation_count=2800.0`, `mean_imbalance_factor=0.9985`, `valid_fraction=1.0`, `complete_fraction=1.0`
 
+Current iteration update: the reproduction scripts have been tightened so train/test split scores are regenerated alongside the main score. A local execution smoke test cannot run on the login-node Python because `torch` is intentionally only available inside the compute container overlay; shell syntax checks and Python bytecode compilation passed locally. The next CPU test job will verify the complete regenerated contract in the container.
+
 ## Remaining
 
 - Potential extension: implement a separate paper-described non-public reference zigzag baseline for `frontier_reference_zigzag`.
 - Potential extension: add additional case studies from the paper, such as LLM-SQL or transaction scheduling.
+- Pending verification: submit the tightened all/train/test reproduction script and, if it passes in the container, promote the milestone to `core_claim_plus` because the result will cover the held-out split in addition to the all-trace core claim.
 
 ## Issues
 
