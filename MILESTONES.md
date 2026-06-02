@@ -1,6 +1,6 @@
 # Reproduction Milestones
 
-**Current: method_runs**
+**Current: core_claim**
 
 ## Progress Log
 
@@ -16,5 +16,10 @@
 - Continuation audit found the earlier `core_claim` was premature: the method used Python snake loops instead of PyTorch tensorized placement, stage-1 zigzag did not affect later stages, and scoring compared stale/partial artifacts.
 - Patched the method to use PyTorch tensorized snake placement, added a frontier-reference zigzag baseline, generalized artifact discovery in `eval/`, and prepared a CPU test submission to regenerate scores.
 
+### [2026-06-02 16:32] - core_claim
+- CPU test job `934efd9a-f8c` completed with exit code 0.
+- Corrected tensorized EPLB reproduction passed `python validate.py --compare`.
+- `evolved_zigzag` reached `work_efficiency_vs_frontier_reference=6.711`, `mean_imbalance_factor=0.989`, and `valid_fraction=1.0`, supporting the core claim.
+
 ## Stop Justification
-- Not stopped. Current submission is validating the corrected tensorized implementation.
+- Completed the corrected minimum reusable environment at milestone `core_claim`.

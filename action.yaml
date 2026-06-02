@@ -1,8 +1,8 @@
 # IMPORTANT: Once you set action to 'submit' or 'done', STOP immediately.
 # Do NOT sleep, poll, or wait for jobs. The system reads this file
 # only after your turn ends. Sleeping blocks the entire pipeline.
-action: submit
+action: done
 gpus: 0
-test: true
-milestone: method_runs
-notes: "CPU test job to install PyTorch, run the corrected tensorized EPLB reproduction with greedy and frontier-reference baselines, regenerate scores.json, and validate the gym contract."
+test: false
+milestone: core_claim
+notes: "Corrected tensorized EPLB reproduction validated by CPU job 934efd9a-f8c. evolved_zigzag achieves 6.711x work efficiency vs frontier_reference_zigzag with identical imbalance and valid placements; validate.py --compare passes."

@@ -23,6 +23,14 @@ Validation note: the paper is internally inconsistent about the EPLB speedup, wi
 
 Final local verification on 2026-06-02: `bash scripts/reproduce.sh && python validate.py --compare` passed, with `evolved_zigzag` reaching `work_efficiency_vs_greedy=2.023`, `mean_imbalance_factor=0.9948`, and `valid_fraction=1.0`.
 
+Corrected CPU test job `934efd9a-f8c` completed with exit code 0 after the continuation audit fixes. The regenerated scores on 42 deterministic traces are:
+
+- `greedy_deepseek`: `work_efficiency_vs_greedy=1.0`, `work_efficiency_vs_frontier_reference=0.729`, `mean_imbalance_factor=0.9985`, `valid_fraction=1.0`, `mean_operation_count=2800.0`
+- `frontier_reference_zigzag`: `work_efficiency_vs_greedy=1.373`, `work_efficiency_vs_frontier_reference=1.0`, `mean_imbalance_factor=0.9888`, `valid_fraction=1.0`, `mean_operation_count=2040.0`
+- `evolved_zigzag`: `work_efficiency_vs_greedy=9.211`, `work_efficiency_vs_frontier_reference=6.711`, `mean_imbalance_factor=0.9888`, `valid_fraction=1.0`, `mean_operation_count=304.0`
+
+This restores `core_claim`: the reproduced evolved algorithm beats the tensorized frontier-reference baseline on the primary work-efficiency metric while preserving the same balance and validity.
+
 ## Remaining
 
 - Potential extension: implement a separate paper-described non-public reference zigzag baseline for `frontier_reference_zigzag`.
@@ -33,7 +41,7 @@ Final local verification on 2026-06-02: `bash scripts/reproduce.sh && python val
 - Exact ShareGPT/GSM8K expert-load traces from the paper are not released.
 - The non-public frontier-lab reference implementation is unavailable; this workspace now includes a faithful frontier-reference-style tensorized zigzag baseline reconstructed from the paper description.
 - Raw paper runtime numbers are hardware-dependent, so evaluation replaces them with counted operations.
-- The reproduced efficiency gain is smaller than the paper's reported runtime gain, but it is measured on a scaled deterministic trace substitute and still supports the core lower-work-with-balance claim.
+- The reproduced efficiency gain is measured on a scaled deterministic trace substitute and with operation counts rather than hardware runtime, but it supports the core lower-work-with-balance claim.
 - Corrected the primary reference metric to `work_efficiency_vs_frontier_reference`, matching the Section 5.2 comparison of the evolved method against the frontier reference implementation.
 - Continuation audit found the previous method used Python snake loops and discarded stage-1 placement. This has been fixed by using PyTorch tensor operations and feeding group zigzag order into replica materialization.
 
