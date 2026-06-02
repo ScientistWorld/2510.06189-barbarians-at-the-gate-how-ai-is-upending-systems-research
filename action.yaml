@@ -1,4 +1,4 @@
-action: submit
+action: done
 gpus: 0
 test: false
-notes: "Rerun train/test scoring after balance-adjusted primary metric fix; regenerate scores_train/test."
+notes: "Even/odd within-family split; 13 emitted metrics per method per slice across 3 methods; primary evolved train/test 6.642/6.629 with small balance gap; runtime remains unscored reference context only."
