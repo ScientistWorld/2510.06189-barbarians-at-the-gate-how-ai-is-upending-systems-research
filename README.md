@@ -41,7 +41,7 @@ The paper argues for AI-Driven Research for Systems (ADRS): use LLM-driven itera
 
 ## Approach
 
-For EPLB, the algorithmic pipeline has three stages: distribute expert groups across nodes, create replicas for overloaded experts, and assign physical replicas to GPUs. The initial program uses greedy bin packing. The evolved policy keeps the overloaded-expert replication idea but replaces loop-heavy placement with a staggered snake/zigzag assignment that sorts replicas and alternates pack direction across blocks. The paper emphasizes that applying this zigzag partitioning across multiple EPLB stages was the key improvement.
+For EPLB, the algorithmic pipeline has three stages: distribute expert groups across nodes, create replicas for overloaded experts, and assign physical replicas to GPUs. The initial program uses greedy bin packing. The evolved policy keeps the overloaded-expert replication idea but replaces loop-heavy placement with a PyTorch tensorized snake/zigzag assignment that sorts replicas and alternates pack direction across blocks. This reproduction makes the group-to-node zigzag order feed into physical replica materialization, then applies the same tensorized placement at the GPU stage. The paper emphasizes that applying this zigzag partitioning across multiple EPLB stages was the key improvement.
 
 ## Main Claims
 
@@ -57,12 +57,13 @@ For EPLB, the algorithmic pipeline has three stages: distribute expert groups ac
 
 - `mean_imbalance_factor`: average over traces of `(mean GPU load) / (max GPU load)`. Higher is better; 1.0 is perfectly balanced.
 - `work_efficiency_vs_greedy`: greedy baseline mean operation count divided by candidate mean operation count. Higher is better. This replaces wall-clock runtime with a machine-independent work proxy.
+- `work_efficiency_vs_frontier_reference`: tensorized frontier-reference baseline mean operation count divided by candidate mean operation count. Higher is better and is the primary metric because the paper's headline EPLB result compares against that reference implementation.
 - `mean_operation_count`: counted algorithmic operations for group packing, replication, and placement. Lower is better.
 - `valid_fraction`: fraction of traces whose placement has the requested number of replicas, valid expert ids, and positive replica count for every logical expert. Higher is better.
 
 ## Baselines and Targets
 
-The main baseline is the public DeepSeek EPLB-style greedy bin-packing policy. The paper reports an initial greedy runtime of about 540 ms with imbalance factor 0.66, a non-public reference runtime of 19.6 ms with the same imbalance, and an evolved runtime of 3.7 ms with the same imbalance. This environment reports the same comparison as relative work efficiency rather than raw runtime.
+The baselines are the public DeepSeek EPLB-style greedy bin-packing policy and a frontier-reference-style tensorized zigzag baseline. The paper reports an initial greedy runtime of about 540 ms with imbalance factor 0.66, a non-public reference runtime of 19.6 ms with the same imbalance, and an evolved runtime of 3.7 ms with the same imbalance. This environment keeps those wall-clock values as `reported_runtime_ms`, but the scored speed metrics use operation-count ratios from the reproducible benchmark because wall-clock runtime is hardware-dependent.
 
 ## Evaluation Protocol
 
@@ -103,12 +104,39 @@ Run `bash scripts/reproduce.sh` to generate deterministic expert-load traces, ru
 
 </details>
 
+### Iteration 2: gpt-5.5
+- **Milestone**: `core_claim` | **Status**: done
+- **Working time**: 7m | **GPU**: 0.0h
+- **Jobs**: 2 total (2 completed, 0 failed)
+
+<details>
+<summary>Progress Log</summary>
+
+### [2026-06-02 15:54] - method_runs
+- Implemented the paper's EPLB case-study algorithm on deterministic expert-load traces.
+- Verified that baseline and evolved placement artifacts run end-to-end and produce valid outputs.
+
+### [2026-06-02 16:00] - core_claim
+- Reproduced the core EPLB claim: the evolved zigzag policy reduces rebalance work while maintaining valid, balanced GPU placements.
+- `scripts/reproduce.sh` and `python validate.py --compare` pass locally.
+
+### [2026-06-02 16:20] - method_runs
+- Continuation audit found the earlier `core_claim` was premature: the method used Python snake loops instead of PyTorch tensorized placement, stage-1 zigzag did not affect later stages, and scoring compared stale/partial artifacts.
+- Patched the method to use PyTorch tensorized snake placement, added a frontier-reference zigzag baseline, generalized artifact discovery in `eval/`, and prepared a CPU test submission to regenerate scores.
+
+### [2026-06-02 16:32] - core_claim
+- CPU test job `934efd9a-f8c` completed with exit code 0.
+- Corrected tensorized EPLB reproduction passed `python validate.py --compare`.
+- `evolved_zigzag` reached `work_efficiency_vs_frontier_reference=6.711`, `mean_imbalance_factor=0.989`, and `valid_fraction=1.0`, supporting the core claim.
+
+</details>
+
 
 ---
 
 # Reproduction Milestones
 
-**Current: method_runs**
+**Current: core_claim**
 
 ## Stop Justification
-- Completed at milestone `method_runs`.
+- Completed at milestone `core_claim`.

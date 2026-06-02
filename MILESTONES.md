@@ -22,4 +22,4 @@
 - `evolved_zigzag` reached `work_efficiency_vs_frontier_reference=6.711`, `mean_imbalance_factor=0.989`, and `valid_fraction=1.0`, supporting the core claim.
 
 ## Stop Justification
-- Completed the corrected minimum reusable environment at milestone `core_claim`.
+- Completed at milestone `core_claim`.
