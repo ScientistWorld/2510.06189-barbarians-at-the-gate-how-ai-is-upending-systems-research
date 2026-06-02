@@ -1,26 +1,114 @@
+# Overview
+
+- **Paper ID:** 2510.06189
+- **Title:** Barbarians at the Gate: How AI is Upending Systems Research
+- **Domain:** Systems / AI-driven algorithm discovery
+- **TL;DR:** The paper shows that LLM-driven evolutionary coding can discover strong systems algorithms when candidates are scored by reliable simulators.
+
+## Short Summary
+
+The paper proposes AI-Driven Research for Systems (ADRS), a generate-evaluate-refine loop for systems performance problems. It studies several case studies using OpenEvolve, including deadline scheduling, MoE expert placement, LLM-SQL layout optimization, and transaction scheduling. This reproduction packages the MoE expert-placement case study because it has a compact public baseline and a clearly described evolved heuristic.
+
+## Key Results
+
+- Paper reports the evolved EPLB algorithm matching baseline imbalance factor while reducing rebalance runtime from 19.6 ms to 3.7 ms versus a non-public reference.
+- The initial public DeepSeek-style greedy EPLB policy is reported at about 540 ms with imbalance factor 0.66.
+- The reproduced environment scores the same trade-off with valid placement, imbalance, and machine-independent operation counts.
+
+---
+
 # Problem Definition
-
-What problem does this paper address? Write this so that someone with no knowledge of the paper can understand what needs to be solved and how success is measured.
-
-Do NOT describe the paper's method or solution here — only the problem itself. Think about if a future scientist agent try to solve this problem from scratch without knowing what approach the paper took. If you leak the solution, you compromise the benchmark.
 
 ## Research Question
 
-<!-- What problem or challenge does this paper tackle? What gap in existing work does it address? -->
+Can automated algorithm discovery improve small, performance-critical systems algorithms when a reliable simulator can score correctness and performance? This reproduction focuses on the MoE expert-parallel load-balancing task: given changing per-expert token loads, a fixed number of logical experts, physical expert replicas, nodes, and GPUs, produce a replica count and GPU placement that balances generated-token load across GPUs.
 
 ## Why It Matters
 
-<!-- Why is this problem important? What would a good solution enable? Make it short -->
+Mixture-of-Experts inference can become bottlenecked when popular experts concentrate on a subset of GPUs. A good load balancer lets serving systems adapt to workload shifts while keeping reconfiguration overhead small.
 
 ## Success Criteria
 
-<!-- What would a successful solution look like? What properties should it have? This is about the goal, not the paper's specific approach. Make it short -->
+A successful solution produces valid placements for all traces, maintains high average/max GPU load balance, and reduces the amount of work needed to rebalance experts when loads change.
+
+---
+
+# Paper's Method
+
+## Key Contribution
+
+The paper argues for AI-Driven Research for Systems (ADRS): use LLM-driven iterative code generation plus reliable simulators to discover systems algorithms. The reproduced case study is Expert Parallelism Load Balancing (EPLB) for MoE inference.
+
+## Approach
+
+For EPLB, the algorithmic pipeline has three stages: distribute expert groups across nodes, create replicas for overloaded experts, and assign physical replicas to GPUs. The initial program uses greedy bin packing. The evolved policy keeps the overloaded-expert replication idea but replaces loop-heavy placement with a staggered snake/zigzag assignment that sorts replicas and alternates pack direction across blocks. The paper emphasizes that applying this zigzag partitioning across multiple EPLB stages was the key improvement.
+
+## Main Claims
+
+- Primary: ADRS can discover a faster EPLB rebalancing algorithm without worsening load balance.
+- Reproduced target: the evolved zigzag placement reduces rebalance work relative to greedy while keeping valid, similarly balanced placements.
+- Secondary paper-level claim: reliable evaluators make systems algorithm discovery especially suitable for AI-driven search.
+
+---
+
+# Evaluation
+
+## Metrics
+
+- `mean_imbalance_factor`: average over traces of `(mean GPU load) / (max GPU load)`. Higher is better; 1.0 is perfectly balanced.
+- `work_efficiency_vs_greedy`: greedy baseline mean operation count divided by candidate mean operation count. Higher is better. This replaces wall-clock runtime with a machine-independent work proxy.
+- `mean_operation_count`: counted algorithmic operations for group packing, replication, and placement. Lower is better.
+- `valid_fraction`: fraction of traces whose placement has the requested number of replicas, valid expert ids, and positive replica count for every logical expert. Higher is better.
+
+## Baselines and Targets
+
+The main baseline is the public DeepSeek EPLB-style greedy bin-packing policy. The paper reports an initial greedy runtime of about 540 ms with imbalance factor 0.66, a non-public reference runtime of 19.6 ms with the same imbalance, and an evolved runtime of 3.7 ms with the same imbalance. This environment reports the same comparison as relative work efficiency rather than raw runtime.
+
+## Evaluation Protocol
+
+Run `bash scripts/reproduce.sh` to generate deterministic expert-load traces, run the baseline and candidate method, and write `scoring/scores.json`. Standalone evaluation is `bash scripts/evaluate.sh`; it reads placement artifacts from `outputs/eplb/` and does not import from `method/`.
+
+---
+
+# Reproduction Log
+
+### Iteration 1: gpt-5.5
+- **Milestone**: `none` | **Status**: error
+- **Working time**: 15m | **GPU**: 0.0h
+
+<details>
+<summary>Progress Log</summary>
+
+<!-- Write your progress here -->
+
+</details>
+
+### Iteration 1: gpt-5.5
+- **Milestone**: `core_claim` | **Status**: done
+- **Working time**: 32m | **GPU**: 0.0h
+- **Jobs**: 1 total (1 completed, 0 failed)
+
+<details>
+<summary>Progress Log</summary>
+
+### [2026-06-02 15:49] - none
+- Audited inherited workspace and found only template docs/scripts with empty `method/`, `eval/`, and `baseline/`; no prior reproduction was present.
+- Implemented a focused MoE Expert Parallelism Load Balancer reproduction with a deterministic trace generator, DeepSeek-style greedy baseline, evolved overloaded-replication plus zigzag placement method, and independent evaluator.
+- Local smoke test passed: `bash scripts/reproduce.sh && python validate.py --compare` produced valid scores for 42 traces. A CPU test job is being submitted before raising the milestone.
+
+### [2026-06-02 15:53] - core_claim
+- CPU test job `e6526d2b-756` completed successfully in the target container with exit code 0.
+- Verified `scripts/run.sh` runs `scripts/reproduce.sh` and `python validate.py --compare` end-to-end.
+- Reproduced the core EPLB claim on deterministic traces: the evolved zigzag policy has `work_efficiency_vs_greedy=2.023`, `valid_fraction=1.0`, and `mean_imbalance_factor=0.995`.
+
+</details>
+
 
 ---
 
 # Reproduction Milestones
 
-**Current: none**
+**Current: core_claim**
 
 ## Stop Justification
-- Completed at milestone `none`.
+- Completed at milestone `core_claim`.

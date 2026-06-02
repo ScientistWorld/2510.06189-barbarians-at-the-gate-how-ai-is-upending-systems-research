@@ -15,5 +15,4 @@
 - Reproduced the core EPLB claim on deterministic traces: the evolved zigzag policy has `work_efficiency_vs_greedy=2.023`, `valid_fraction=1.0`, and `mean_imbalance_factor=0.995`.
 
 ## Stop Justification
-
-Reached `core_claim`: the packaged environment implements the paper-described EPLB computational pipeline, scores both benefit and constraint metrics, and passed a compute-container smoke test. Remaining gaps are documented deviations: unavailable original ShareGPT/GSM8K traces, unavailable non-public frontier reference implementation, and machine-independent operation counts replacing wall-clock runtime.
+- Completed at milestone `core_claim`.
