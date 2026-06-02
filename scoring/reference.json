@@ -32,6 +32,21 @@
         "num_traces": {
           "higher_is_better": true,
           "coefficient": 0.0
+        },
+        "complete_fraction": {
+          "higher_is_better": true,
+          "coefficient": 0.4,
+          "description": "Fraction of required slice traces for which the method emitted a placement artifact; catches methods that skip difficult traces."
+        },
+        "min_imbalance_factor": {
+          "higher_is_better": true,
+          "coefficient": 0.3,
+          "description": "Worst per-trace GPU load balance ratio on the slice; catches methods that keep the mean balanced while sacrificing hard cases."
+        },
+        "p95_operation_count": {
+          "higher_is_better": false,
+          "coefficient": -0.15,
+          "description": "High-percentile rebalance work across traces; catches methods that hide rare expensive placements behind a good mean."
         }
       },
       "results": {
