@@ -1,4 +1,5 @@
 action: done
 gpus: 0
 test: false
-notes: "Even/odd within-family split; 13 emitted metrics per method per slice across 3 methods; primary evolved train/test 6.642/6.629 with small balance gap; runtime remains unscored reference context only."
+milestone: core_claim
+notes: "Core EPLB claim supported: evolved method reduces mean operation count vs frontier reference 2040->304 with valid_fraction=1.0 and comparable mean imbalance 0.989; split eval passes post-design checks."
