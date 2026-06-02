@@ -27,3 +27,8 @@
 ### [2026-06-02 18:05] - core_claim
 - Wired the method, baseline, and reproduction scripts to regenerate `scores.json`, `scores_train.json`, and `scores_test.json` from fresh artifacts.
 - Prepared a CPU container verification job for the train/test split; `core_claim_plus` will only be claimed after that job completes successfully.
+
+### [2026-06-02 18:20] - core_claim
+- Final verification passed `python validate.py --compare`; eval/method separation, shared-path checks, and train/test wiring are valid.
+- Sanitized method-agnostic evaluation documentation so from-scratch agents see the task and scoring contract without solution details.
+- Kept milestone at `core_claim` because the core EPLB claim is supported on deterministic synthetic traces, with the exact paper traces and non-public implementation still unavailable.

@@ -2,25 +2,25 @@
 
 ## Initial Assessment
 
-The workspace started at `core_claim` with a working EPLB reproduction, generated artifacts, train/test split evaluators, and prior successful CPU container jobs. The claimed milestone was broadly justified: the method implements the paper-described EPLB replica-placement computation and reproduces the core lower-rebalance-work claim on deterministic substitute traces.
+The workspace already claimed `core_claim` and had a working EPLB reproduction pipeline with deterministic traces, method artifacts, baseline/reference artifacts, main scoring, and train/test scoring. The claimed milestone was justified by prior successful CPU-container execution of `scripts/reproduce.sh` followed by `python validate.py --compare`.
 
 ## Issues Found
 
-- **Critical, fixed**: the main evaluator originally scored only traces emitted by a method artifact. A shortcut method could skip hard traces and still receive `valid_fraction=1.0`.
-- **Minor, fixed**: `briefing/evaluation.md` leaked an implementation-specific baseline layout into a method-agnostic file.
-- **Limitation, documented**: the paper's ShareGPT/GSM8K-derived expert-load traces and non-public frontier reference implementation are unavailable, so the gym uses deterministic substitute traces and a reconstructed reference baseline.
+- Minor: `briefing/evaluation.md` used method- and paper-specific wording in a strict method-agnostic file, including descriptions of the reconstructed reference and discovered policy.
+- Minor: `action.yaml` still requested a validation submit from the previous iteration instead of signaling final completion.
 
 ## Fixes Applied
 
-- Hardened `eval/eplb_eval.py` so it scores against the full required trace set, penalizes missing or duplicate trace outputs, emits completeness and robustness metrics, and computes balance-adjusted work-efficiency ratios.
-- Revised `briefing/evaluation.md` and `scoring/reference.json` wording to describe the stronger reference baseline without leaking implementation details into from-scratch-facing documentation.
-- Submitted CPU verification job `371d3b15-229`; it regenerated outputs through `scripts/reproduce.sh`, reran `python validate.py --compare`, and passed all scoring and structure checks.
+- Reworded `briefing/evaluation.md` to describe metrics, comparison anchors, and artifact protocol without exposing solution details.
+- Tightened `scoring/TARGETS.md` wording around the diagnostic reference metric.
+- Added this verification report and a final `MILESTONES.md` progress entry.
+- Changed `action.yaml` to `action: done` with milestone `core_claim`.
 
 ## Final Judgment
 
-The workspace is ready as a research gym for the EPLB case study. Improve-mode agents can build on the implemented method and baselines, while from-scratch agents can use the method-agnostic problem, data, and evaluator without importing from `method/`. The main caveat is that results are on deterministic substitute traces rather than the paper's unreleased traces.
+The workspace is ready to serve as a gym. From-scratch agents can use the method-agnostic problem, data, evaluation, scoring targets, constraints, and directions without importing or reading the paper method. Improve-mode agents can run the packaged reproduction and compare against the existing method and reference artifacts. The main limitation is that the exact expert-load traces and non-public reference implementation from the paper are unavailable, so this gym validates the core claim on deterministic synthetic MoE load traces using operation-count work rather than hardware-dependent wall-clock runtime.
 
 - Milestone: core_claim
 - Ready for gym use: yes
 - Confidence: medium
-- Key limitation: deterministic substitute traces replace the paper's unreleased ShareGPT/GSM8K-derived load traces.
+- Key limitation: synthetic traces replace unreleased paper traces and operation counts replace wall-clock timings.

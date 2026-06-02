@@ -4,7 +4,7 @@
 
 Tests whether an expert-placement policy reduces rebalance work on changing MoE expert-load traces.
 - **Metric**: `work_efficiency_vs_frontier_reference` (higher is better)
-- **Diagnostic**: `work_efficiency_vs_greedy` is reported in `scores.json` to show improvement over the public greedy implementation, but it is not a paper-reference target because the paper reports this gap as wall-clock runtime while this gym scores operation counts.
+- **Diagnostic**: `work_efficiency_vs_greedy` is reported in `scores.json` to show improvement over a lightweight fixed reference, but it is not the primary target because the gym scores machine-independent operation counts rather than wall-clock runtime.
 
 ## Constraint: eplb_moe_placement
 
