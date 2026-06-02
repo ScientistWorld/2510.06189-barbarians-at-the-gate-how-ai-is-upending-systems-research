@@ -1,15 +1,15 @@
 # Paper's Method
 
-How the paper approaches the problem, i.e. the paper's core contributions.
-
 ## Key Contribution
 
-<!-- What is the paper's main contribution? -->
+The paper argues for AI-Driven Research for Systems (ADRS): use LLM-driven iterative code generation plus reliable simulators to discover systems algorithms. The reproduced case study is Expert Parallelism Load Balancing (EPLB) for MoE inference.
 
 ## Approach
 
-<!-- How does the paper solve the problem? Key ideas, architecture, algorithm. -->
+For EPLB, the algorithmic pipeline has three stages: distribute expert groups across nodes, create replicas for overloaded experts, and assign physical replicas to GPUs. The initial program uses greedy bin packing. The evolved policy keeps the overloaded-expert replication idea but replaces loop-heavy placement with a staggered snake/zigzag assignment that sorts replicas and alternates pack direction across blocks. The paper emphasizes that applying this zigzag partitioning across multiple EPLB stages was the key improvement.
 
 ## Main Claims
 
-<!-- What are the paper's central claims? Which are primary vs. secondary? -->
+- Primary: ADRS can discover a faster EPLB rebalancing algorithm without worsening load balance.
+- Reproduced target: the evolved zigzag placement reduces rebalance work relative to greedy while keeping valid, similarly balanced placements.
+- Secondary paper-level claim: reliable evaluators make systems algorithm discovery especially suitable for AI-driven search.

@@ -16,4 +16,5 @@
 
 set -e
 
-# uv pip install --system <packages>
+# No Python packages are required. The EPLB reproduction is implemented with
+# the Python standard library so CPU test jobs can run without network access.

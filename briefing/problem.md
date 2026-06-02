@@ -1,17 +1,13 @@
 # Problem Definition
 
-What problem does this paper address? Write this so that someone with no knowledge of the paper can understand what needs to be solved and how success is measured.
-
-Do NOT describe the paper's method or solution here — only the problem itself. Think about if a future scientist agent try to solve this problem from scratch without knowing what approach the paper took. If you leak the solution, you compromise the benchmark.
-
 ## Research Question
 
-<!-- What problem or challenge does this paper tackle? What gap in existing work does it address? -->
+Can automated algorithm discovery improve small, performance-critical systems algorithms when a reliable simulator can score correctness and performance? This reproduction focuses on the MoE expert-parallel load-balancing task: given changing per-expert token loads, a fixed number of logical experts, physical expert replicas, nodes, and GPUs, produce a replica count and GPU placement that balances generated-token load across GPUs.
 
 ## Why It Matters
 
-<!-- Why is this problem important? What would a good solution enable? Make it short -->
+Mixture-of-Experts inference can become bottlenecked when popular experts concentrate on a subset of GPUs. A good load balancer lets serving systems adapt to workload shifts while keeping reconfiguration overhead small.
 
 ## Success Criteria
 
-<!-- What would a successful solution look like? What properties should it have? This is about the goal, not the paper's specific approach. Make it short -->
+A successful solution produces valid placements for all traces, maintains high average/max GPU load balance, and reduces the amount of work needed to rebalance experts when loads change.

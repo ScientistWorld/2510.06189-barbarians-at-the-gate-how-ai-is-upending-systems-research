@@ -2,20 +2,11 @@
 
 **Current: none**
 
-<!-- Milestone levels (update "Current" above as you progress):
-  none             — just started, no meaningful progress yet
-  method_runs      — the paper's method executes end-to-end without errors
-  core_claim       — minimum experiment supports the paper's central claim
-  core_claim_plus  — core claim reproduced on additional settings
-  secondary_claims — secondary results or contributions reproduced
-  majority         — more than half of reported results reproduced
-  near_complete    — most results reproduced, only minor gaps remain
-  full             — all reported results reproduced
--->
-
 ## Progress Log
 
-<!-- Write your progress here -->
+### [2026-06-02 15:49] - none
+- Audited inherited workspace and found only template docs/scripts with empty `method/`, `eval/`, and `baseline/`; no prior reproduction was present.
+- Implemented a focused MoE Expert Parallelism Load Balancer reproduction with a deterministic trace generator, DeepSeek-style greedy baseline, evolved overloaded-replication plus zigzag placement method, and independent evaluator.
+- Local smoke test passed: `bash scripts/reproduce.sh && python validate.py --compare` produced valid scores for 42 traces. A CPU test job is being submitted before raising the milestone.
 
 ## Stop Justification
-- Completed at milestone `none`.

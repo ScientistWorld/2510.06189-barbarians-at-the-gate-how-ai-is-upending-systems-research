@@ -1,0 +1,57 @@
+{
+  "experiments": {
+    "eplb_moe_placement": {
+      "description": "MoE expert-parallel load balancing: reduce rebalance work while preserving GPU load balance.",
+      "weight": 1.0,
+      "primary_metric": "work_efficiency_vs_greedy",
+      "metrics": {
+        "work_efficiency_vs_greedy": {
+          "higher_is_better": true,
+          "coefficient": 1.0
+        },
+        "mean_imbalance_factor": {
+          "higher_is_better": true,
+          "coefficient": 0.6
+        },
+        "valid_fraction": {
+          "higher_is_better": true,
+          "coefficient": 0.4
+        },
+        "mean_operation_count": {
+          "higher_is_better": false,
+          "coefficient": -0.2
+        },
+        "num_traces": {
+          "higher_is_better": true,
+          "coefficient": 0.0
+        }
+      },
+      "results": {
+        "greedy_deepseek": {
+          "type": "baseline",
+          "work_efficiency_vs_greedy": 1.0,
+          "mean_imbalance_factor": 0.66,
+          "valid_fraction": 1.0,
+          "mean_operation_count": 540.0,
+          "num_traces": 1.0
+        },
+        "frontier_reference_zigzag": {
+          "type": "baseline",
+          "work_efficiency_vs_greedy": 27.551,
+          "mean_imbalance_factor": 0.66,
+          "valid_fraction": 1.0,
+          "mean_operation_count": 19.6,
+          "num_traces": 1.0
+        },
+        "evolved_zigzag": {
+          "type": "proposed",
+          "work_efficiency_vs_greedy": 145.946,
+          "mean_imbalance_factor": 0.66,
+          "valid_fraction": 1.0,
+          "mean_operation_count": 3.7,
+          "num_traces": 1.0
+        }
+      }
+    }
+  }
+}

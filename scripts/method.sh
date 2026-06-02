@@ -1,14 +1,8 @@
 #!/bin/bash
-# Run the paper's proposed method.
-#
-# This script trains/runs the paper's method using code in method/.
-#
-# Usage:
-#   bash scripts/method.sh
-
 set -e
 
 cd /home/user
 
-# TODO: run the paper's method
-# TODO: call scripts/evaluate.sh to score
+python data/generate_eplb_traces.py
+python method/eplb_evolved.py --traces data/eplb_traces.json --output outputs/eplb/evolved_zigzag.json
+bash scripts/evaluate.sh
