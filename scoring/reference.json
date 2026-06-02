@@ -25,6 +25,11 @@
           "coefficient": 0.35,
           "description": "Fraction of slice traces with structurally valid placement artifacts."
         },
+        "reported_runtime_ms": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "Paper-reported wall-clock runtime kept only to validate legacy reference-result keys; not emitted by split evaluators and not scored."
+        },
         "mean_operation_count": {
           "higher_is_better": false,
           "coefficient": -0.2,

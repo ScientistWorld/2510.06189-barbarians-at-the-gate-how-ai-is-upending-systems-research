@@ -6,4 +6,4 @@ action: done
 gpus: 0
 test: false
 milestone: core_claim
-notes: "Improvements: added family/high-skew anti-shortcut metrics, completed metric metadata, removed wall-clock runtime from active metric schema. Notes: runner should verify emitted keys and watch compact-split saturation."
+notes: "Improvements: added family/high-skew anti-shortcut metrics, completed metric metadata, kept reported_runtime_ms as unscored reference context only. Notes: runner should verify emitted keys and watch compact-split saturation."

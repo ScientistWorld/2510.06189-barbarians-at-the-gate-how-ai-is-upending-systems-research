@@ -14,12 +14,12 @@ Changed:
   `family_imbalance_floor` and `family_imbalance_spread`.
 - Added high-skew trace metrics to both train and test evaluators:
   `high_skew_mean_imbalance_factor` and `high_skew_mean_operation_count`.
-- Removed `reported_runtime_ms` from active metric definitions in `scoring/reference.json`; wall-clock values remain only in paper-result context because hardware-dependent runtime should not drive the gym score.
+- Kept `reported_runtime_ms` as an explicitly unscored `coefficient: 0.0` reference metric so legacy paper-result keys validate, while ensuring hardware-dependent runtime does not drive the gym score.
 - Added required `higher_is_better`, `coefficient`, and `description` fields for every active metric in `scoring/reference.json`.
 - Reweighted balance/validity coefficients slightly so the score better reflects the paper's claim: work reduction without sacrificing placement validity or load balance.
 
 Problem fixed:
-- The first-pass schema declared metrics that were not fully described and included a wall-clock metric as an active metric entry. This weakened static coverage checks and conflicted with the hardware-independent scoring requirement.
+- The first-pass schema declared metrics that were not fully described. `reported_runtime_ms` remains only as an unscored compatibility/context field because paper-result keys must be listed in `metrics`, but hardware-dependent runtime should not affect scoring.
 - The first-pass split mostly tested a global mean over an even/odd trace partition. The added family and high-skew metrics make visible-metric gaming harder by requiring improvements to hold across workload families and difficult load distributions.
 
 Runtime concerns for the next iteration:
