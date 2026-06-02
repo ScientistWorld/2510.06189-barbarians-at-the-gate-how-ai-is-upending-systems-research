@@ -2,4 +2,4 @@ action: submit
 gpus: 0
 test: true
 milestone: core_claim
-notes: "Fresh CPU smoke job after fixing scripts/run.sh to regenerate EPLB artifacts via scripts/reproduce.sh before validation."
+notes: "Fresh CPU smoke job after verifier fixed the main evaluator to penalize missing traces and emit full constraint metrics."

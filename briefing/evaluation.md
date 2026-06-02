@@ -4,13 +4,14 @@
 
 - `mean_imbalance_factor`: average over traces of `(mean GPU load) / (max GPU load)`. Higher is better; 1.0 is perfectly balanced.
 - `work_efficiency_vs_greedy`: greedy baseline mean operation count divided by candidate mean operation count. Higher is better. This replaces wall-clock runtime with a machine-independent work proxy.
-- `work_efficiency_vs_frontier_reference`: tensorized frontier-reference baseline mean operation count divided by candidate mean operation count. Higher is better and is the primary metric because the paper's headline EPLB result compares against that reference implementation.
+- `work_efficiency_vs_frontier_reference`: stronger reference baseline mean operation count divided by candidate mean operation count, multiplied by the candidate's measured balance. Higher is better and is the primary metric because the paper's headline EPLB result compares against a stronger reference implementation.
 - `mean_operation_count`: counted algorithmic operations for group packing, replication, and placement. Lower is better.
-- `valid_fraction`: fraction of traces whose placement has the requested number of replicas, valid expert ids, and positive replica count for every logical expert. Higher is better.
+- `valid_fraction`: fraction of required traces whose placement has the requested number of replicas, valid expert ids, and positive replica count for every logical expert. Higher is better.
+- `complete_fraction`: fraction of required traces for which a method emits an artifact. Higher is better.
 
 ## Baselines and Targets
 
-The baselines are the public DeepSeek EPLB-style greedy bin-packing policy and a frontier-reference-style tensorized zigzag baseline. The paper reports an initial greedy runtime of about 540 ms with imbalance factor 0.66, a non-public reference runtime of 19.6 ms with the same imbalance, and an evolved runtime of 3.7 ms with the same imbalance. This environment keeps those wall-clock values as `reported_runtime_ms`, but the scored speed metrics use operation-count ratios from the reproducible benchmark because wall-clock runtime is hardware-dependent.
+The baselines are a simple public EPLB policy and a stronger reference policy reconstructed from the paper's description. The paper reports an initial public baseline runtime of about 540 ms with imbalance factor 0.66, a non-public reference runtime of 19.6 ms with the same imbalance, and a discovered-policy runtime of 3.7 ms with the same imbalance. This environment keeps those wall-clock values as `reported_runtime_ms`, but the scored speed metrics use operation-count ratios from the reproducible benchmark because wall-clock runtime is hardware-dependent.
 
 ## Evaluation Protocol
 

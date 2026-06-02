@@ -13,7 +13,7 @@
         "work_efficiency_vs_frontier_reference": {
           "higher_is_better": true,
           "coefficient": 1.0,
-          "description": "Primary machine-independent operation-count efficiency against the frontier-reference-style zigzag baseline, adjusted by measured GPU load balance on the scored slice."
+          "description": "Primary machine-independent operation-count efficiency against the stronger reference baseline, adjusted by measured GPU load balance on the scored slice."
         },
         "mean_imbalance_factor": {
           "higher_is_better": true,
