@@ -5,4 +5,4 @@ action: done
 gpus: 0
 test: false
 milestone: core_claim
-notes: "Corrected tensorized EPLB reproduction validated by CPU job 934efd9a-f8c. evolved_zigzag achieves 6.711x work efficiency vs frontier_reference_zigzag with identical imbalance and valid placements; validate.py --compare passes."
+notes: "Fixed reference/scores consistency by separating paper reported_runtime_ms from operation-count efficiency ratios. Corrected tensorized EPLB reproduction remains at core_claim with evolved_zigzag 6.711x vs frontier_reference_zigzag and valid balanced placements."

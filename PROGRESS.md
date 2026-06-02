@@ -31,6 +31,8 @@ Corrected CPU test job `934efd9a-f8c` completed with exit code 0 after the conti
 
 This restores `core_claim`: the reproduced evolved algorithm beats the tensorized frontier-reference baseline on the primary work-efficiency metric while preserving the same balance and validity.
 
+Validation follow-up: `reference.json` now separates paper wall-clock values (`reported_runtime_ms`) from the scored operation-count ratios. The public greedy and frontier-reference baseline ratios are recorded using the same operation-count proxy emitted by `scores.json`, avoiding a false consistency failure from comparing paper milliseconds to benchmark operation counts.
+
 ## Remaining
 
 - Potential extension: implement a separate paper-described non-public reference zigzag baseline for `frontier_reference_zigzag`.

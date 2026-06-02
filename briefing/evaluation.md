@@ -10,7 +10,7 @@
 
 ## Baselines and Targets
 
-The baselines are the public DeepSeek EPLB-style greedy bin-packing policy and a frontier-reference-style tensorized zigzag baseline. The paper reports an initial greedy runtime of about 540 ms with imbalance factor 0.66, a non-public reference runtime of 19.6 ms with the same imbalance, and an evolved runtime of 3.7 ms with the same imbalance. This environment reports the same comparisons as relative work efficiency rather than raw runtime.
+The baselines are the public DeepSeek EPLB-style greedy bin-packing policy and a frontier-reference-style tensorized zigzag baseline. The paper reports an initial greedy runtime of about 540 ms with imbalance factor 0.66, a non-public reference runtime of 19.6 ms with the same imbalance, and an evolved runtime of 3.7 ms with the same imbalance. This environment keeps those wall-clock values as `reported_runtime_ms`, but the scored speed metrics use operation-count ratios from the reproducible benchmark because wall-clock runtime is hardware-dependent.
 
 ## Evaluation Protocol
 
