@@ -1,3 +1,3 @@
 action: done
 milestone: core_claim
-notes: "Fixed reference.json primary metric to the paper-stated 5.0x EPLB headline, revalidated successfully, and retained core_claim results from CPU job e6526d2b-756."
+notes: "Fixed reference.json primary metric to the paper Table 1 EPLB target of 2.0x, revalidated successfully, and retained core_claim results from CPU job e6526d2b-756."
