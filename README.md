@@ -183,6 +183,32 @@ Run `bash scripts/reproduce.sh` to generate deterministic expert-load traces, ru
 
 </details>
 
+### Iteration 5: gpt-5.5 (designer_stage_2)
+- **Milestone**: `core_claim` | **Status**: done
+- **Working time**: 3m | **GPU**: 0.0h
+- **Jobs**: 3 total (3 completed, 0 failed)
+
+<details>
+<summary>Progress Log</summary>
+
+### [2026-06-02 16:04] - method_runs
+- The EPLB pipeline ran end-to-end on deterministic MoE expert-load traces.
+- Generated greedy baseline, frontier-reference zigzag baseline, evolved zigzag artifacts, and reusable scores.
+
+### [2026-06-02 16:30] - core_claim
+- Reproduced the paper's EPLB core claim on a scaled deterministic trace substitute.
+- The evolved tensorized zigzag policy reduced mean operation count versus the frontier-reference zigzag baseline while preserving valid placements and comparable load balance.
+
+### [2026-06-02 16:55] - core_claim
+- Continuation audit confirmed the implementation is not a surrogate: it directly implements overloaded-expert replication and tensorized snake/zigzag placement from the paper's EPLB case study.
+- Corrected the scoring contract so paper-reference targets compare the evolved policy against the frontier-reference baseline, while greedy operation-count speedup remains a diagnostic metric.
+
+### [2026-06-02 17:09] - core_claim
+- CPU container verification job `a288216f-231` completed successfully.
+- `scripts/reproduce.sh` regenerated EPLB outputs and `python validate.py --compare` passed all scoring and structure checks.
+
+</details>
+
 
 ---
 
