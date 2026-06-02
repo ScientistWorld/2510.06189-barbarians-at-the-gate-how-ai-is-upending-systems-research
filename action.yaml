@@ -1,5 +1,5 @@
-action: done
+action: submit
 gpus: 0
-test: false
+test: true
 milestone: core_claim
-notes: "Packaging audit passed: no external downloads required, synthetic traces are regenerated, and no banned shared paths were found."
+notes: "Fresh CPU smoke job after fixing scripts/run.sh to regenerate EPLB artifacts via scripts/reproduce.sh before validation."

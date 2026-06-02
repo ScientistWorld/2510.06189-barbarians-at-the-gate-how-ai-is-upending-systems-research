@@ -48,6 +48,7 @@ Final CPU container verification job `a288216f-231` completed with exit code 0. 
 
 ## Issues
 
+- Continuation packaging audit found that `scripts/run.sh` had drifted to train/test evaluation only and could evaluate stale outputs without regenerating method artifacts. It has been corrected to run `scripts/reproduce.sh` followed by `python validate.py --compare`.
 - Exact ShareGPT/GSM8K expert-load traces from the paper are not released.
 - The non-public frontier-lab reference implementation is unavailable; this workspace now includes a faithful frontier-reference-style tensorized zigzag baseline reconstructed from the paper description.
 - Raw paper runtime numbers are hardware-dependent, so evaluation replaces them with counted operations.
