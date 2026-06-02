@@ -1,3 +1,3 @@
 action: done
 milestone: core_claim
-notes: "CPU job e6526d2b-756 passed in the target container. EPLB reproduction is packaged, validated, and demonstrates lower counted rebalance work with valid balanced placements."
+notes: "Fixed reference.json primary metric to the paper-stated 5.0x EPLB headline, revalidated successfully, and retained core_claim results from CPU job e6526d2b-756."

@@ -37,7 +37,7 @@
         },
         "frontier_reference_zigzag": {
           "type": "baseline",
-          "work_efficiency_vs_greedy": 27.551,
+          "work_efficiency_vs_greedy": 1.0,
           "mean_imbalance_factor": 0.66,
           "valid_fraction": 1.0,
           "mean_operation_count": 19.6,
@@ -45,7 +45,7 @@
         },
         "evolved_zigzag": {
           "type": "proposed",
-          "work_efficiency_vs_greedy": 145.946,
+          "work_efficiency_vs_greedy": 5.0,
           "mean_imbalance_factor": 0.66,
           "valid_fraction": 1.0,
           "mean_operation_count": 3.7,
