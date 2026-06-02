@@ -38,7 +38,7 @@
         "greedy_deepseek": {
           "type": "baseline",
           "work_efficiency_vs_greedy": 1.0,
-          "work_efficiency_vs_frontier_reference": 0.7285714285714285,
+          "work_efficiency_vs_frontier_reference": 0.0362962962962963,
           "mean_imbalance_factor": 0.66,
           "valid_fraction": 1.0,
           "reported_runtime_ms": 540.0,
@@ -46,7 +46,7 @@
         },
         "frontier_reference_zigzag": {
           "type": "baseline",
-          "work_efficiency_vs_greedy": 1.3725490196078431,
+          "work_efficiency_vs_greedy": 27.551020408163264,
           "work_efficiency_vs_frontier_reference": 1.0,
           "mean_imbalance_factor": 0.66,
           "valid_fraction": 1.0,
