@@ -2,4 +2,4 @@ action: done
 gpus: 0
 test: false
 milestone: core_claim
-notes: "Core EPLB claim supported: evolved method reduces mean operation count vs frontier reference 2040->304 with valid_fraction=1.0 and comparable mean imbalance 0.989; split eval passes post-design checks."
+notes: "Packaging audit passed: no external downloads required, synthetic traces are regenerated, and no banned shared paths were found."
