@@ -5,4 +5,4 @@ action: submit
 gpus: 0
 test: true
 milestone: core_claim
-notes: "CPU container verification after reference/milestone cleanup: rerun scripts/reproduce.sh and validate.py --compare."
+notes: "Continuation audit restored core_claim after fixing scoring contract; CPU container job reruns scripts/reproduce.sh and validate.py --compare."
