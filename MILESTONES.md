@@ -19,3 +19,7 @@
 ### [2026-06-02 17:09] - core_claim
 - CPU container verification job `a288216f-231` completed successfully.
 - `scripts/reproduce.sh` regenerated EPLB outputs and `python validate.py --compare` passed all scoring and structure checks.
+
+### [2026-06-02 17:58] - core_claim
+- Final verifier CPU job `371d3b15-229` completed successfully after the evaluator hardening pass.
+- Hardened scoring now penalizes missing trace outputs, emits completeness and robustness metrics, and still supports the core EPLB claim.

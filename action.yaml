@@ -1,5 +1,5 @@
-action: submit
+action: done
 gpus: 0
-test: true
+test: false
 milestone: core_claim
-notes: "Fresh CPU smoke job after verifier fixed the main evaluator to penalize missing traces and emit full constraint metrics."
+notes: "Final verification passed after hardened evaluator regeneration; workspace is ready for gym use at core_claim."

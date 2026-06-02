@@ -41,6 +41,12 @@ Final CPU container verification job `a288216f-231` completed with exit code 0. 
 - `frontier_reference_zigzag`: `work_efficiency_vs_frontier_reference=1.0`, `mean_operation_count=2040.0`, `mean_imbalance_factor=0.9888`, `valid_fraction=1.0`
 - `greedy_deepseek`: `work_efficiency_vs_frontier_reference=0.729`, `mean_operation_count=2800.0`, `mean_imbalance_factor=0.9985`, `valid_fraction=1.0`
 
+Final verifier CPU job `371d3b15-229` completed with exit code 0 after the main evaluator was hardened to penalize missing trace outputs. It reran `scripts/reproduce.sh` and `python validate.py --compare`; all checks passed. The updated balance-adjusted scores are:
+
+- `evolved_zigzag`: `work_efficiency_vs_frontier_reference=6.635`, `work_efficiency_vs_greedy=9.108`, `mean_operation_count=304.0`, `mean_imbalance_factor=0.9888`, `valid_fraction=1.0`, `complete_fraction=1.0`
+- `frontier_reference_zigzag`: `work_efficiency_vs_frontier_reference=0.989`, `mean_operation_count=2040.0`, `mean_imbalance_factor=0.9888`, `valid_fraction=1.0`, `complete_fraction=1.0`
+- `greedy_deepseek`: `work_efficiency_vs_frontier_reference=0.727`, `mean_operation_count=2800.0`, `mean_imbalance_factor=0.9985`, `valid_fraction=1.0`, `complete_fraction=1.0`
+
 ## Remaining
 
 - Potential extension: implement a separate paper-described non-public reference zigzag baseline for `frontier_reference_zigzag`.
