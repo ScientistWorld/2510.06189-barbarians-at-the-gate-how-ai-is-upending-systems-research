@@ -3,28 +3,49 @@
     "eplb_moe_placement": {
       "results": {
         "evolved_zigzag": {
+          "complete_fraction": 1.0,
+          "family_imbalance_floor": 0.9853913210393813,
+          "family_imbalance_spread": 0.007698536275308254,
+          "high_skew_mean_imbalance_factor": 0.9869444008693105,
+          "high_skew_mean_operation_count": 304.0,
           "mean_imbalance_factor": 0.9888192050222312,
           "mean_operation_count": 304.0,
+          "min_imbalance_factor": 0.9738389324402426,
           "num_traces": 42.0,
+          "p95_operation_count": 304.0,
           "valid_fraction": 1.0,
-          "work_efficiency_vs_frontier_reference": 6.7105263157894735,
-          "work_efficiency_vs_greedy": 9.210526315789474
+          "work_efficiency_vs_frontier_reference": 6.635497296859709,
+          "work_efficiency_vs_greedy": 9.107545309415288
         },
         "frontier_reference_zigzag": {
+          "complete_fraction": 1.0,
+          "family_imbalance_floor": 0.9853913210393813,
+          "family_imbalance_spread": 0.007698536275308254,
+          "high_skew_mean_imbalance_factor": 0.9869444008693105,
+          "high_skew_mean_operation_count": 2040.0,
           "mean_imbalance_factor": 0.9888192050222312,
           "mean_operation_count": 2040.0,
+          "min_imbalance_factor": 0.9738389324402426,
           "num_traces": 42.0,
+          "p95_operation_count": 2040.0,
           "valid_fraction": 1.0,
-          "work_efficiency_vs_frontier_reference": 1.0,
-          "work_efficiency_vs_greedy": 1.3725490196078431
+          "work_efficiency_vs_frontier_reference": 0.9888192050222312,
+          "work_efficiency_vs_greedy": 1.3572028304226702
         },
         "greedy_deepseek": {
+          "complete_fraction": 1.0,
+          "family_imbalance_floor": 0.9983321115784412,
+          "family_imbalance_spread": 0.0004000073277323768,
+          "high_skew_mean_imbalance_factor": 0.9987278099867858,
+          "high_skew_mean_operation_count": 2800.0,
           "mean_imbalance_factor": 0.9985265611926354,
           "mean_operation_count": 2800.0,
+          "min_imbalance_factor": 0.9964825888146323,
           "num_traces": 42.0,
+          "p95_operation_count": 2800.0,
           "valid_fraction": 1.0,
-          "work_efficiency_vs_frontier_reference": 0.7285714285714285,
-          "work_efficiency_vs_greedy": 1.0
+          "work_efficiency_vs_frontier_reference": 0.7274979231546344,
+          "work_efficiency_vs_greedy": 0.9985265611926354
         }
       }
     }
