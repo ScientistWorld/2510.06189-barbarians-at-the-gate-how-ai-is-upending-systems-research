@@ -136,7 +136,7 @@ Run `bash scripts/reproduce.sh` to generate deterministic expert-load traces, ru
 
 # Reproduction Milestones
 
-**Current: core_claim**
+**Current: method_runs**
 
 ## Stop Justification
-- Completed at milestone `core_claim`.
+- Completed at milestone `method_runs`.
