@@ -185,18 +185,26 @@ def discover_artifacts(outputs_dir: Path, method_names: Iterable[str] | None = N
 
 
 def add_relative_efficiency_metrics(results: dict[str, dict[str, float]]) -> None:
+    def balance_adjusted_ratio(numerator: float, metrics: dict[str, float]) -> float:
+        denominator = metrics["mean_operation_count"]
+        if denominator <= 0:
+            return 0.0
+        return (numerator / denominator) * metrics["mean_imbalance_factor"]
+
     baseline_ops = results.get("greedy_deepseek", {}).get("mean_operation_count")
     if baseline_ops and baseline_ops > 0:
         for metrics in results.values():
-            denominator = metrics["mean_operation_count"]
-            metrics["work_efficiency_vs_greedy"] = baseline_ops / denominator if denominator > 0 else 0.0
+            metrics["work_efficiency_vs_greedy"] = balance_adjusted_ratio(
+                baseline_ops,
+                metrics,
+            )
 
     frontier_ops = results.get("frontier_reference_zigzag", {}).get("mean_operation_count")
     if frontier_ops and frontier_ops > 0:
         for metrics in results.values():
-            denominator = metrics["mean_operation_count"]
-            metrics["work_efficiency_vs_frontier_reference"] = (
-                frontier_ops / denominator if denominator > 0 else 0.0
+            metrics["work_efficiency_vs_frontier_reference"] = balance_adjusted_ratio(
+                frontier_ops,
+                metrics,
             )
 
 
