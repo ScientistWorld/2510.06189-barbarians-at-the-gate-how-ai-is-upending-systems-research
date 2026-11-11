@@ -1,4 +1,4 @@
 action: submit
 gpus: 0
 test: false
-notes: "Run 3 reference seeds, stronger/weaker controls, bounded brute force, and 12 artifact/data shortcuts; restore gym files after each test."
+notes: "Resume audit: test invalid node-group metadata and bounded exhaustive placement traversal; recompute ranks including clean controls."

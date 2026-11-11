@@ -1,0 +1,258 @@
+{
+  "operation_count_is_lower_bound": true,
+  "scope": "fixed reference replica counts; no replica-allocation enumeration",
+  "traces": [
+    {
+      "best_balance": 0.9909318899924904,
+      "space_exhausted": false,
+      "trace_id": "sharegpt_like_000",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9931690317331752,
+      "space_exhausted": false,
+      "trace_id": "sharegpt_like_001",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9876384192270294,
+      "space_exhausted": false,
+      "trace_id": "sharegpt_like_002",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9848211771332019,
+      "space_exhausted": false,
+      "trace_id": "sharegpt_like_003",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9838528159710329,
+      "space_exhausted": false,
+      "trace_id": "sharegpt_like_004",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.977061204496236,
+      "space_exhausted": false,
+      "trace_id": "sharegpt_like_005",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9971712401503963,
+      "space_exhausted": false,
+      "trace_id": "sharegpt_like_006",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9919503158568115,
+      "space_exhausted": false,
+      "trace_id": "sharegpt_like_007",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9857743313727668,
+      "space_exhausted": false,
+      "trace_id": "sharegpt_like_008",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9876129075175124,
+      "space_exhausted": false,
+      "trace_id": "sharegpt_like_009",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9923260651635156,
+      "space_exhausted": false,
+      "trace_id": "sharegpt_like_010",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9850308970807585,
+      "space_exhausted": false,
+      "trace_id": "sharegpt_like_011",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9903862961020801,
+      "space_exhausted": false,
+      "trace_id": "sharegpt_like_012",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9839435221797109,
+      "space_exhausted": false,
+      "trace_id": "sharegpt_like_013",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9956896551724138,
+      "space_exhausted": false,
+      "trace_id": "gsm8k_like_014",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9923092602464799,
+      "space_exhausted": false,
+      "trace_id": "gsm8k_like_015",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9935994347750117,
+      "space_exhausted": false,
+      "trace_id": "gsm8k_like_016",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.989896889562973,
+      "space_exhausted": false,
+      "trace_id": "gsm8k_like_017",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9979061666172546,
+      "space_exhausted": false,
+      "trace_id": "gsm8k_like_018",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9951723617711398,
+      "space_exhausted": false,
+      "trace_id": "gsm8k_like_019",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9935639353558264,
+      "space_exhausted": false,
+      "trace_id": "gsm8k_like_020",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9926295461860315,
+      "space_exhausted": false,
+      "trace_id": "gsm8k_like_021",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9912744606778128,
+      "space_exhausted": false,
+      "trace_id": "gsm8k_like_022",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9950926884351182,
+      "space_exhausted": false,
+      "trace_id": "gsm8k_like_023",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9852719882583987,
+      "space_exhausted": false,
+      "trace_id": "gsm8k_like_024",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.991355051035009,
+      "space_exhausted": false,
+      "trace_id": "gsm8k_like_025",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9954901960784314,
+      "space_exhausted": false,
+      "trace_id": "gsm8k_like_026",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9940063682337517,
+      "space_exhausted": false,
+      "trace_id": "gsm8k_like_027",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9858729253442465,
+      "space_exhausted": false,
+      "trace_id": "shifted_dialog_028",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9816409324288875,
+      "space_exhausted": false,
+      "trace_id": "shifted_dialog_029",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9867289709717776,
+      "space_exhausted": false,
+      "trace_id": "shifted_dialog_030",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9862422920265823,
+      "space_exhausted": false,
+      "trace_id": "shifted_dialog_031",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9820872895555733,
+      "space_exhausted": false,
+      "trace_id": "shifted_dialog_032",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9891144285626109,
+      "space_exhausted": false,
+      "trace_id": "shifted_dialog_033",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.988841524573721,
+      "space_exhausted": false,
+      "trace_id": "shifted_dialog_034",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9925076188068086,
+      "space_exhausted": false,
+      "trace_id": "shifted_dialog_035",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.991645634324782,
+      "space_exhausted": false,
+      "trace_id": "shifted_dialog_036",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9900872156143695,
+      "space_exhausted": false,
+      "trace_id": "shifted_dialog_037",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9891267414203194,
+      "space_exhausted": false,
+      "trace_id": "shifted_dialog_038",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9738389324402426,
+      "space_exhausted": false,
+      "trace_id": "shifted_dialog_039",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9807512676808113,
+      "space_exhausted": false,
+      "trace_id": "shifted_dialog_040",
+      "visited": 2048
+    },
+    {
+      "best_balance": 0.9769927208006053,
+      "space_exhausted": false,
+      "trace_id": "shifted_dialog_041",
+      "visited": 2048
+    }
+  ]
+}

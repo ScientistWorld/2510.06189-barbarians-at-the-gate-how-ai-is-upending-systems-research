@@ -1,7 +1,7 @@
 {
   "cases": {
     "better_no_unused_scatter": {
-      "cohort_rank_delta": 1.694780785501709e-05,
+      "cohort_rank_delta": 1.6714754567033662e-05,
       "metrics": {
         "complete_fraction": 1.0,
         "family_imbalance_floor": 0.9843463058114438,
@@ -24,13 +24,13 @@
         "family_imbalance_floor": 0.0,
         "family_imbalance_spread": -0.0,
         "high_skew_mean_imbalance_factor": 0.0,
-        "high_skew_mean_operation_count": 9.793165122315998e-07,
+        "high_skew_mean_operation_count": 7.581769459101267e-07,
         "mean_imbalance_factor": 0.0,
-        "mean_operation_count": 1.9586330244631997e-06,
+        "mean_operation_count": 1.5163538918202535e-06,
         "min_imbalance_factor": 0.0,
-        "p95_operation_count": 1.4689747683473995e-06,
+        "p95_operation_count": 1.13726541886519e-06,
         "valid_fraction": 0.0,
-        "work_efficiency_vs_frontier_reference": 1.254088354997489e-05
+        "work_efficiency_vs_frontier_reference": 1.3302958310438091e-05
       },
       "status": {
         "candidate_exit": 0,
@@ -54,8 +54,8 @@
         "train_exit": 0
       }
     },
-    "brute_force_placements": {
-      "cohort_rank_delta": -1.8088732649233497,
+    "brute_force_enumeration": {
+      "cohort_rank_delta": -1.4014995536816153,
       "metrics": {
         "complete_fraction": 1.0,
         "family_imbalance_floor": 0.9843463058114438,
@@ -78,13 +78,67 @@
         "family_imbalance_floor": 0.0,
         "family_imbalance_spread": -0.0,
         "high_skew_mean_imbalance_factor": 0.0,
-        "high_skew_mean_operation_count": -0.40112804341006325,
+        "high_skew_mean_operation_count": -0.3105492770447879,
         "mean_imbalance_factor": 0.0,
-        "mean_operation_count": -0.8022560868201265,
+        "mean_operation_count": -0.6210985540895758,
         "min_imbalance_factor": 0.0,
-        "p95_operation_count": -0.6016920651150949,
+        "p95_operation_count": -0.4658239155671819,
         "valid_fraction": 0.0,
-        "work_efficiency_vs_frontier_reference": -0.0037970695780649008
+        "work_efficiency_vs_frontier_reference": -0.004027806980069699
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 26.177324093005154,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "brute_force_enumeration",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": true,
+        "train_exit": 0
+      }
+    },
+    "brute_force_placements": {
+      "cohort_rank_delta": -1.4014995536816153,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 0.9843463058114438,
+        "family_imbalance_spread": 0.00857686068434238,
+        "high_skew_mean_imbalance_factor": 0.9853451350354966,
+        "high_skew_mean_operation_count": 409904.0,
+        "mean_imbalance_factor": 0.9878321601022865,
+        "mean_operation_count": 409904.0,
+        "min_imbalance_factor": 0.9738389324402426,
+        "num_traces": 21.0,
+        "p95_operation_count": 409904.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_frontier_reference": 0.004916218447755242,
+        "work_efficiency_vs_greedy": 0.0067477508106444485
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": -2.9,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": 0.0,
+        "family_imbalance_spread": -0.0,
+        "high_skew_mean_imbalance_factor": 0.0,
+        "high_skew_mean_operation_count": -0.3105492770447879,
+        "mean_imbalance_factor": 0.0,
+        "mean_operation_count": -0.6210985540895758,
+        "min_imbalance_factor": 0.0,
+        "p95_operation_count": -0.4658239155671819,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": -0.004027806980069699
       },
       "status": {
         "candidate_exit": 0,
@@ -271,7 +325,7 @@
       }
     },
     "shortcut_claim_one_operation": {
-      "cohort_rank_delta": 1.1527012759040665,
+      "cohort_rank_delta": 1.222365073788753,
       "metrics": {
         "complete_fraction": 1.0,
         "family_imbalance_floor": 0.9843463058114438,
@@ -294,13 +348,13 @@
         "family_imbalance_floor": 0.0,
         "family_imbalance_spread": -0.0,
         "high_skew_mean_imbalance_factor": 0.0,
-        "high_skew_mean_operation_count": 0.00029673290320617475,
+        "high_skew_mean_operation_count": 0.0002297276146107684,
         "mean_imbalance_factor": 0.0,
-        "mean_operation_count": 0.0005934658064123495,
+        "mean_operation_count": 0.0004594552292215368,
         "min_imbalance_factor": 0.0,
-        "p95_operation_count": 0.00044509935480926206,
+        "p95_operation_count": 0.00034459142191615256,
         "valid_fraction": 0.0,
-        "work_efficiency_vs_frontier_reference": 1.1513659778396386
+        "work_efficiency_vs_frontier_reference": 1.2213312995230043
       },
       "status": {
         "candidate_exit": 0,
@@ -325,7 +379,7 @@
       }
     },
     "shortcut_drop_experts": {
-      "cohort_rank_delta": 0.09207554441676767,
+      "cohort_rank_delta": 0.096772364619349,
       "metrics": {
         "complete_fraction": 1.0,
         "family_imbalance_floor": 1.0,
@@ -345,16 +399,16 @@
       "pairwise_rank_delta": 4.8999999999999995,
       "rank_terms": {
         "complete_fraction": 0.0,
-        "family_imbalance_floor": 0.011253223151826103,
-        "family_imbalance_spread": 0.030364389657818926,
-        "high_skew_mean_imbalance_factor": 0.010547167020096115,
+        "family_imbalance_floor": 0.011781989848898139,
+        "family_imbalance_spread": 0.03215790919062608,
+        "high_skew_mean_imbalance_factor": 0.011043104039100537,
         "high_skew_mean_operation_count": -0.0,
-        "mean_imbalance_factor": 0.01770747669054478,
+        "mean_imbalance_factor": 0.018550345693332276,
         "mean_operation_count": -0.0,
-        "min_imbalance_factor": 0.022156481943789903,
+        "min_imbalance_factor": 0.023189365626587452,
         "p95_operation_count": -0.0,
         "valid_fraction": 0.0,
-        "work_efficiency_vs_frontier_reference": 4.6805952691839145e-05
+        "work_efficiency_vs_frontier_reference": 4.9650220804507864e-05
       },
       "status": {
         "candidate_exit": 0,
@@ -379,7 +433,7 @@
       }
     },
     "shortcut_empty_outputs": {
-      "cohort_rank_delta": -6.2886239624219185,
+      "cohort_rank_delta": -6.613019424675311,
       "metrics": {
         "complete_fraction": 0.0,
         "family_imbalance_floor": 0.0,
@@ -398,17 +452,17 @@
       "missing_scored_metrics": [],
       "pairwise_rank_delta": -6.7,
       "rank_terms": {
-        "complete_fraction": -1.6035674514745464,
-        "family_imbalance_floor": -0.7076328759552382,
-        "family_imbalance_spread": 0.030364389657818926,
-        "high_skew_mean_imbalance_factor": -0.7091569753000929,
-        "high_skew_mean_operation_count": -0.0006424316320239296,
-        "mean_imbalance_factor": -1.4375612348802091,
-        "mean_operation_count": -0.0012848632640478591,
-        "min_imbalance_factor": -0.8247692749344331,
-        "p95_operation_count": -0.0009636474480358941,
-        "valid_fraction": -1.0296097094754662,
-        "work_efficiency_vs_frontier_reference": -0.003799887715642371
+        "complete_fraction": -1.7000000000000002,
+        "family_imbalance_floor": -0.7408831451012576,
+        "family_imbalance_spread": 0.03215790919062608,
+        "high_skew_mean_imbalance_factor": -0.7425021565858744,
+        "high_skew_mean_operation_count": -0.0004973640765170432,
+        "mean_imbalance_factor": -1.505988590491889,
+        "mean_operation_count": -0.0009947281530340863,
+        "min_imbalance_factor": -0.8632181012559473,
+        "p95_operation_count": -0.0007460461147755647,
+        "valid_fraction": -1.0863164057185795,
+        "work_efficiency_vs_frontier_reference": -0.00403079636806272
       },
       "status": {
         "candidate_exit": 0,
@@ -433,7 +487,7 @@
       }
     },
     "shortcut_empty_replicas": {
-      "cohort_rank_delta": 0.09207554441676767,
+      "cohort_rank_delta": 0.096772364619349,
       "metrics": {
         "complete_fraction": 1.0,
         "family_imbalance_floor": 1.0,
@@ -453,16 +507,16 @@
       "pairwise_rank_delta": 4.8999999999999995,
       "rank_terms": {
         "complete_fraction": 0.0,
-        "family_imbalance_floor": 0.011253223151826103,
-        "family_imbalance_spread": 0.030364389657818926,
-        "high_skew_mean_imbalance_factor": 0.010547167020096115,
+        "family_imbalance_floor": 0.011781989848898139,
+        "family_imbalance_spread": 0.03215790919062608,
+        "high_skew_mean_imbalance_factor": 0.011043104039100537,
         "high_skew_mean_operation_count": -0.0,
-        "mean_imbalance_factor": 0.01770747669054478,
+        "mean_imbalance_factor": 0.018550345693332276,
         "mean_operation_count": -0.0,
-        "min_imbalance_factor": 0.022156481943789903,
+        "min_imbalance_factor": 0.023189365626587452,
         "p95_operation_count": -0.0,
         "valid_fraction": 0.0,
-        "work_efficiency_vs_frontier_reference": 4.6805952691839145e-05
+        "work_efficiency_vs_frontier_reference": 4.9650220804507864e-05
       },
       "status": {
         "candidate_exit": 0,
@@ -487,7 +541,7 @@
       }
     },
     "shortcut_flatten_workload": {
-      "cohort_rank_delta": 0.09207554441676767,
+      "cohort_rank_delta": 0.096772364619349,
       "metrics": {
         "complete_fraction": 1.0,
         "family_imbalance_floor": 1.0,
@@ -507,16 +561,16 @@
       "pairwise_rank_delta": 4.8999999999999995,
       "rank_terms": {
         "complete_fraction": 0.0,
-        "family_imbalance_floor": 0.011253223151826103,
-        "family_imbalance_spread": 0.030364389657818926,
-        "high_skew_mean_imbalance_factor": 0.010547167020096115,
+        "family_imbalance_floor": 0.011781989848898139,
+        "family_imbalance_spread": 0.03215790919062608,
+        "high_skew_mean_imbalance_factor": 0.011043104039100537,
         "high_skew_mean_operation_count": -0.0,
-        "mean_imbalance_factor": 0.01770747669054478,
+        "mean_imbalance_factor": 0.018550345693332276,
         "mean_operation_count": -0.0,
-        "min_imbalance_factor": 0.022156481943789903,
+        "min_imbalance_factor": 0.023189365626587452,
         "p95_operation_count": -0.0,
         "valid_fraction": 0.0,
-        "work_efficiency_vs_frontier_reference": 4.6805952691839145e-05
+        "work_efficiency_vs_frontier_reference": 4.9650220804507864e-05
       },
       "status": {
         "candidate_exit": 0,
@@ -541,7 +595,7 @@
       }
     },
     "shortcut_forged_summary": {
-      "cohort_rank_delta": -2.0764255570603978,
+      "cohort_rank_delta": -2.1793575361566626,
       "metrics": {
         "complete_fraction": 1.0,
         "family_imbalance_floor": 0.5383561056100132,
@@ -561,16 +615,16 @@
       "pairwise_rank_delta": -4.0,
       "rank_terms": {
         "complete_fraction": 0.0,
-        "family_imbalance_floor": -0.32061615526278503,
-        "family_imbalance_spread": -0.4254504180004204,
-        "high_skew_mean_imbalance_factor": -0.31686586869784683,
-        "high_skew_mean_operation_count": 5.8758990733896e-06,
-        "mean_imbalance_factor": -0.5733321752836493,
-        "mean_operation_count": 1.17517981467792e-05,
-        "min_imbalance_factor": -0.43871789431008884,
-        "p95_operation_count": 8.813848610084398e-06,
+        "family_imbalance_floor": -0.3356812742210567,
+        "family_imbalance_spread": -0.45058030348548017,
+        "high_skew_mean_imbalance_factor": -0.3317651790099751,
+        "high_skew_mean_operation_count": 4.549061675460761e-06,
+        "mean_imbalance_factor": -0.6006225638179655,
+        "mean_operation_count": 9.098123350921521e-06,
+        "min_imbalance_factor": -0.45916990269002034,
+        "p95_operation_count": 6.82359251319114e-06,
         "valid_fraction": 0.0,
-        "work_efficiency_vs_frontier_reference": -0.0014694870514373082
+        "work_efficiency_vs_frontier_reference": -0.0015587837097042693
       },
       "status": {
         "candidate_exit": 0,
@@ -594,8 +648,62 @@
         "train_exit": 0
       }
     },
+    "shortcut_ignore_node_groups": {
+      "cohort_rank_delta": 0.0,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 0.9843463058114438,
+        "family_imbalance_spread": 0.00857686068434238,
+        "high_skew_mean_imbalance_factor": 0.9853451350354966,
+        "high_skew_mean_operation_count": 304.0,
+        "mean_imbalance_factor": 0.9878321601022865,
+        "mean_operation_count": 304.0,
+        "min_imbalance_factor": 0.9738389324402426,
+        "num_traces": 21.0,
+        "p95_operation_count": 304.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_frontier_reference": 6.6288737059495535,
+        "work_efficiency_vs_greedy": 9.09845410620527
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": 0.0,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": 0.0,
+        "family_imbalance_spread": -0.0,
+        "high_skew_mean_imbalance_factor": 0.0,
+        "high_skew_mean_operation_count": -0.0,
+        "mean_imbalance_factor": 0.0,
+        "mean_operation_count": -0.0,
+        "min_imbalance_factor": 0.0,
+        "p95_operation_count": -0.0,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": 0.0
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 1.2362999379984103,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "shortcut_ignore_node_groups",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": false,
+        "train_exit": 0
+      }
+    },
     "shortcut_impossible_values": {
-      "cohort_rank_delta": -4.685056510947371,
+      "cohort_rank_delta": -4.913019424675311,
       "metrics": {
         "complete_fraction": 1.0,
         "family_imbalance_floor": 0.0,
@@ -615,16 +723,16 @@
       "pairwise_rank_delta": -5.9,
       "rank_terms": {
         "complete_fraction": 0.0,
-        "family_imbalance_floor": -0.7076328759552382,
-        "family_imbalance_spread": 0.030364389657818926,
-        "high_skew_mean_imbalance_factor": -0.7091569753000929,
-        "high_skew_mean_operation_count": -0.0006424316320239296,
-        "mean_imbalance_factor": -1.4375612348802091,
-        "mean_operation_count": -0.0012848632640478591,
-        "min_imbalance_factor": -0.8247692749344331,
-        "p95_operation_count": -0.0009636474480358941,
-        "valid_fraction": -1.0296097094754662,
-        "work_efficiency_vs_frontier_reference": -0.003799887715642371
+        "family_imbalance_floor": -0.7408831451012576,
+        "family_imbalance_spread": 0.03215790919062608,
+        "high_skew_mean_imbalance_factor": -0.7425021565858744,
+        "high_skew_mean_operation_count": -0.0004973640765170432,
+        "mean_imbalance_factor": -1.505988590491889,
+        "mean_operation_count": -0.0009947281530340863,
+        "min_imbalance_factor": -0.8632181012559473,
+        "p95_operation_count": -0.0007460461147755647,
+        "valid_fraction": -1.0863164057185795,
+        "work_efficiency_vs_frontier_reference": -0.00403079636806272
       },
       "status": {
         "candidate_exit": 0,
@@ -649,7 +757,7 @@
       }
     },
     "shortcut_inflate_baseline": {
-      "cohort_rank_delta": 3.7960878279267285,
+      "cohort_rank_delta": 4.026765571694657,
       "metrics": {
         "complete_fraction": 1.0,
         "family_imbalance_floor": 0.9843463058114438,
@@ -678,7 +786,7 @@
         "min_imbalance_factor": 0.0,
         "p95_operation_count": -0.0,
         "valid_fraction": 0.0,
-        "work_efficiency_vs_frontier_reference": 3.7960878279267285
+        "work_efficiency_vs_frontier_reference": 4.026765571694657
       },
       "status": {
         "candidate_exit": 0,
@@ -888,7 +996,7 @@
       }
     },
     "simple_greedy": {
-      "cohort_rank_delta": 0.06907095266165426,
+      "cohort_rank_delta": 0.0756207828020765,
       "metrics": {
         "complete_fraction": 1.0,
         "family_imbalance_floor": 0.9983361589413376,
@@ -908,16 +1016,16 @@
       "pairwise_rank_delta": 1.1102230246251565e-16,
       "rank_terms": {
         "complete_fraction": 0.0,
-        "family_imbalance_floor": 0.010057110943630158,
-        "family_imbalance_spread": 0.028773110226337464,
-        "high_skew_mean_imbalance_factor": 0.00965041961349079,
-        "high_skew_mean_operation_count": -0.0024443740145300734,
-        "mean_imbalance_factor": 0.01562329623301018,
-        "mean_operation_count": -0.004888748029060147,
-        "min_imbalance_factor": 0.01934954352894784,
-        "p95_operation_count": -0.0036665610217951096,
+        "family_imbalance_floor": 0.010529674693944429,
+        "family_imbalance_spread": 0.030472638383896234,
+        "high_skew_mean_imbalance_factor": 0.010104190785042107,
+        "high_skew_mean_operation_count": -0.0018924096569916764,
+        "mean_imbalance_factor": 0.016366959056703316,
+        "mean_operation_count": -0.003784819313983353,
+        "min_imbalance_factor": 0.02025157426791328,
+        "p95_operation_count": -0.0028386144854875145,
         "valid_fraction": 0.0,
-        "work_efficiency_vs_frontier_reference": -0.003382844818376843
+        "work_efficiency_vs_frontier_reference": -0.003588410928960326
       },
       "status": {
         "candidate_exit": 0,
@@ -942,7 +1050,7 @@
       }
     },
     "weaker_without_snake": {
-      "cohort_rank_delta": -2.0764255570603978,
+      "cohort_rank_delta": -2.1793575361566626,
       "metrics": {
         "complete_fraction": 1.0,
         "family_imbalance_floor": 0.5383561056100132,
@@ -962,16 +1070,16 @@
       "pairwise_rank_delta": -4.0,
       "rank_terms": {
         "complete_fraction": 0.0,
-        "family_imbalance_floor": -0.32061615526278503,
-        "family_imbalance_spread": -0.4254504180004204,
-        "high_skew_mean_imbalance_factor": -0.31686586869784683,
-        "high_skew_mean_operation_count": 5.8758990733896e-06,
-        "mean_imbalance_factor": -0.5733321752836493,
-        "mean_operation_count": 1.17517981467792e-05,
-        "min_imbalance_factor": -0.43871789431008884,
-        "p95_operation_count": 8.813848610084398e-06,
+        "family_imbalance_floor": -0.3356812742210567,
+        "family_imbalance_spread": -0.45058030348548017,
+        "high_skew_mean_imbalance_factor": -0.3317651790099751,
+        "high_skew_mean_operation_count": 4.549061675460761e-06,
+        "mean_imbalance_factor": -0.6006225638179655,
+        "mean_operation_count": 9.098123350921521e-06,
+        "min_imbalance_factor": -0.45916990269002034,
+        "p95_operation_count": 6.82359251319114e-06,
         "valid_fraction": 0.0,
-        "work_efficiency_vs_frontier_reference": -0.0014694870514373082
+        "work_efficiency_vs_frontier_reference": -0.0015587837097042693
       },
       "status": {
         "candidate_exit": 0,
@@ -1002,6 +1110,8 @@
     "weaker_without_snake",
     "simple_greedy",
     "brute_force_placements",
+    "brute_force_enumeration",
+    "shortcut_ignore_node_groups",
     "shortcut_claim_one_operation",
     "shortcut_empty_replicas",
     "shortcut_drop_experts",
@@ -1015,17 +1125,17 @@
     "shortcut_omit_method_from_roster"
   ],
   "cohort_population_sd": {
-    "complete_fraction": 0.24944382578492943,
-    "family_imbalance_floor": 0.34776023671973566,
-    "family_imbalance_spread": 0.042369667796700525,
-    "high_skew_mean_imbalance_factor": 0.3473649591539763,
-    "high_skew_mean_operation_count": 102112.03298525704,
-    "mean_imbalance_factor": 0.3435791589721748,
-    "mean_operation_count": 102112.03298525704,
-    "min_imbalance_factor": 0.3542223123615971,
-    "p95_operation_count": 102112.03298525704,
-    "valid_fraction": 0.339934634239519,
-    "work_efficiency_vs_frontier_reference": 1744.4919960822954
+    "complete_fraction": 0.23529411764705882,
+    "family_imbalance_floor": 0.3321530231589057,
+    "family_imbalance_spread": 0.040006615325177165,
+    "high_skew_mean_imbalance_factor": 0.33176507512323167,
+    "high_skew_mean_operation_count": 131895.33200585324,
+    "mean_imbalance_factor": 0.3279680092993396,
+    "mean_operation_count": 131895.33200585324,
+    "min_imbalance_factor": 0.33844480242826686,
+    "p95_operation_count": 131895.33200585324,
+    "valid_fraction": 0.32218973970892123,
+    "work_efficiency_vs_frontier_reference": 1644.5568321119433
   },
   "metric_weights": {
     "complete_fraction": {
@@ -1100,6 +1210,35 @@
     "valid_fraction": 1.0,
     "work_efficiency_vs_frontier_reference": 6.6288737059495535,
     "work_efficiency_vs_greedy": 9.09845410620527
+  },
+  "science_cohort": [
+    "reference_seed_0",
+    "better_no_unused_scatter",
+    "weaker_without_snake",
+    "simple_greedy",
+    "brute_force_placements",
+    "brute_force_enumeration"
+  ],
+  "science_cohort_population_sd": {
+    "complete_fraction": 0.0,
+    "family_imbalance_floor": 0.16733146978775726,
+    "family_imbalance_spread": 0.04548912471937116,
+    "high_skew_mean_imbalance_factor": 0.16515186807285764,
+    "high_skew_mean_operation_count": 192795.98367740674,
+    "mean_imbalance_factor": 0.14767616996361443,
+    "mean_operation_count": 192795.98367740674,
+    "min_imbalance_factor": 0.1949332537091281,
+    "p95_operation_count": 192795.98367740674,
+    "valid_fraction": 0.0,
+    "work_efficiency_vs_frontier_reference": 2.907913462128396
+  },
+  "science_cohort_rank_deltas": {
+    "better_no_unused_scatter": 0.0075257598087255136,
+    "brute_force_enumeration": -3.2339438766279787,
+    "brute_force_placements": -3.2339438766279787,
+    "reference_seed_0": 0.0,
+    "simple_greedy": -1.8957259952907675,
+    "weaker_without_snake": -4.74173002881413
   },
   "seed_test_metric_spread": {
     "complete_fraction": 0.0,
