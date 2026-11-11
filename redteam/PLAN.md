@@ -1,0 +1,7 @@
+This audit runs three independent seeded reference repetitions, an exact placement-preserving removal of unnecessary tensor work, a final-stage snake ablation, the public greedy baseline, and a bounded brute-force placement search. It then exercises artifact count forgery, degenerate placements, comparator manipulation, visible-input answer caching, workload modification, direct score/flag forgery, failed outputs, and train-score roster filtering.
+
+Every case has a policy and run.sh. Each runs the visible evaluator and the unmodified hidden test in separate processes, saving both score files and test exit status. No candidate imports the hidden evaluator or uses the paper or hidden scoring configuration. The configuration is read only after experiments, for rank analysis. Each case restores the data, score files, and original output artifacts. A failed hidden test is never reported as a successful ranked attempt.
+
+The empirical rank uses absolute coefficients, better-direction deltas against the rerun proposed reference, experiment weight, and population standard deviation across the audit attempts. The eventual future-attempt normalization is unknown; also report pairwise ranks and identify improvements that dominate the reference regardless of normalization.
+
+Initial workspace commit: 1e92b4a. Pre-existing changes: README.md and manifest.json were device placeholders; five tracked trajectory files were already absent. These are not audit changes and will not be restored or committed.
