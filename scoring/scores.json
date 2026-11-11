@@ -1,7 +1,7 @@
 {
   "_anchor": {
     "balancedness": 0.6673626145130609,
-    "mean_cost": 2004235.1947442507,
+    "mean_cost": 347527.900701675,
     "name": "frontier_reference_zigzag"
   },
   "_failures": {},
@@ -15,9 +15,9 @@
     "per_rebalance_cap": 500000000.0,
     "units_per_bytecode": 1.0,
     "units_per_c_call": 1.0,
-    "units_per_scanned_python_element": 1.0,
-    "units_per_tensor_element": 0.1,
-    "units_per_torch_kernel": 400.0
+    "units_per_scanned_python_element": 2.0,
+    "units_per_tensor_element": 0.06,
+    "units_per_torch_kernel": 20.0
   },
   "experiments": {
     "eplb_moe_placement": {
@@ -25,19 +25,19 @@
         "evolved_zigzag": {
           "balance_change_vs_frontier_reference": 0.0,
           "balancedness": 0.6673626145130609,
-          "diagnostic_cpu_ms_per_rebalance": 1.4232288372093023,
-          "mean_rebalance_cost": 266587.7687347767,
+          "diagnostic_cpu_ms_per_rebalance": 1.6067530232558138,
+          "mean_rebalance_cost": 124717.3031013311,
           "num_rebalances": 43.0,
           "run_failed": 0.0,
-          "speedup_vs_frontier_reference": 7.518106341698774,
+          "speedup_vs_frontier_reference": 2.786525141738459,
           "valid_fraction": 1.0,
           "worst_window_balancedness": 0.40848129475799105
         },
         "frontier_reference_zigzag": {
           "balance_change_vs_frontier_reference": 0.0,
           "balancedness": 0.6673626145130609,
-          "diagnostic_cpu_ms_per_rebalance": 4.819743953488373,
-          "mean_rebalance_cost": 2004235.1947442507,
+          "diagnostic_cpu_ms_per_rebalance": 5.282027441860465,
+          "mean_rebalance_cost": 347527.900701675,
           "num_rebalances": 43.0,
           "run_failed": 0.0,
           "speedup_vs_frontier_reference": 1.0,
@@ -47,11 +47,11 @@
         "greedy_deepseek": {
           "balance_change_vs_frontier_reference": -0.0003354336500688282,
           "balancedness": 0.6670271808629921,
-          "diagnostic_cpu_ms_per_rebalance": 178.03968386046512,
-          "mean_rebalance_cost": 97912597.40051132,
+          "diagnostic_cpu_ms_per_rebalance": 181.25621388372093,
+          "mean_rebalance_cost": 12531451.169910239,
           "num_rebalances": 43.0,
           "run_failed": 0.0,
-          "speedup_vs_frontier_reference": 0.020469635654194015,
+          "speedup_vs_frontier_reference": 0.02773245460478974,
           "valid_fraction": 1.0,
           "worst_window_balancedness": 0.40942276024582586
         }

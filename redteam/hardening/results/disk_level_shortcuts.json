@@ -1,0 +1,43 @@
+{
+  "shortcut_flatten_workload": {
+    "reference_in_this_run": {
+      "balancedness": 0.6583241442514451,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 2.786525141738459
+    },
+    "reference_unchanged": true
+  },
+  "shortcut_forged_summary": {
+    "reference_in_this_run": {
+      "balancedness": 0.6583241442514451,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 2.786525141738459
+    },
+    "reference_unchanged": true
+  },
+  "shortcut_inflate_baseline": {
+    "edited_frontier_speedup": 0.3667709413291925,
+    "reference_in_this_run": {
+      "balancedness": 0.6583241442514451,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 2.786525141738459
+    },
+    "reference_unchanged": true
+  },
+  "shortcut_omit_method_from_roster": {
+    "reference_in_this_run": {
+      "balancedness": 0.6583241442514451,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 2.786525141738459
+    },
+    "reference_unchanged": true
+  },
+  "shortcut_remove_frontier": {
+    "reference_in_this_run": {
+      "balancedness": 0.6583241442514451,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 2.786525141738459
+    },
+    "reference_unchanged": true
+  }
+}

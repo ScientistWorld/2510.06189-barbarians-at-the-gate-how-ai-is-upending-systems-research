@@ -1,0 +1,1016 @@
+{
+  "anchor": {
+    "balancedness": 0.6583241442514451,
+    "mean_cost": 347527.900701675,
+    "name": "frontier_reference_zigzag"
+  },
+  "determinism_vs_job1_counters": {
+    "_anchor": {
+      "identical_raw_counters": true
+    },
+    "better_compact_log2phy": {
+      "identical_raw_counters": true
+    },
+    "better_lean_replication": {
+      "identical_raw_counters": true
+    },
+    "brute_force_sampled_placements": {
+      "identical_raw_counters": true
+    },
+    "evolved_zigzag": {
+      "identical_raw_counters": true
+    },
+    "frontier_reference_zigzag": {
+      "identical_raw_counters": true
+    },
+    "greedy_deepseek": {
+      "identical_raw_counters": true
+    },
+    "probe_python_lists": {
+      "identical_raw_counters": true
+    },
+    "shortcut_claim_one_operation": {
+      "identical_raw_counters": true
+    },
+    "simple_static_placement": {
+      "identical_raw_counters": true
+    },
+    "weaker_without_snake": {
+      "identical_raw_counters": true
+    }
+  },
+  "disk_level_shortcuts": {
+    "shortcut_flatten_workload": {
+      "reference_in_this_run": {
+        "balancedness": 0.6583241442514451,
+        "run_failed": 0.0,
+        "speedup_vs_frontier_reference": 2.786525141738459
+      },
+      "reference_unchanged": true
+    },
+    "shortcut_forged_summary": {
+      "reference_in_this_run": {
+        "balancedness": 0.6583241442514451,
+        "run_failed": 0.0,
+        "speedup_vs_frontier_reference": 2.786525141738459
+      },
+      "reference_unchanged": true
+    },
+    "shortcut_inflate_baseline": {
+      "edited_frontier_speedup": 0.3667709413291925,
+      "reference_in_this_run": {
+        "balancedness": 0.6583241442514451,
+        "run_failed": 0.0,
+        "speedup_vs_frontier_reference": 2.786525141738459
+      },
+      "reference_unchanged": true
+    },
+    "shortcut_omit_method_from_roster": {
+      "reference_in_this_run": {
+        "balancedness": 0.6583241442514451,
+        "run_failed": 0.0,
+        "speedup_vs_frontier_reference": 2.786525141738459
+      },
+      "reference_unchanged": true
+    },
+    "shortcut_remove_frontier": {
+      "reference_in_this_run": {
+        "balancedness": 0.6583241442514451,
+        "run_failed": 0.0,
+        "speedup_vs_frontier_reference": 2.786525141738459
+      },
+      "reference_unchanged": true
+    }
+  },
+  "evaluator_hash": "76a6346eeeb4c64c8304f55f56ab214c70a94aeb5f5b9e0b3975d13ec11f5a54",
+  "failures": {
+    "shortcut_bypass_dispatch_mode": "offset 0 window 0: guard: policy called _disable_current_modes, which bypasses the work meter",
+    "shortcut_disable_meter": "offset 0 window 0: guard: policy called blocked API sys.monitoring.set_events",
+    "shortcut_drop_experts": "offset 0 window 0: invalid placement: layer 0: logical expert 0 has no replica",
+    "shortcut_empty_outputs": "offset 0 window 0: invalid output: rebalance_experts must return (phy2log, log2phy, logcnt)",
+    "shortcut_empty_replicas": "offset 0 window 0: invalid placement: layer 0: phy2log must list exactly 288 physical experts",
+    "shortcut_global_placement": "offset 0 window 0: invalid placement: layer 0: expert group 5 is split across nodes",
+    "shortcut_impossible_values": "offset 0 window 0: invalid placement: log2phy entries beyond each expert's replica count must be -1",
+    "shortcut_jit_script": "load failed: PermissionError: policy called blocked API torch.jit.script",
+    "shortcut_leave_mode_active": "policy process exited unexpectedly",
+    "shortcut_malformed_policy": "load failed: SyntaxError: invalid syntax (shortcut_malformed_policy.py, line 2)",
+    "shortcut_numpy_offload": "offset 0 window 0: guard: policy called blocked API Tensor.numpy",
+    "shortcut_oversized_lookup": "policy file is 79047 bytes (limit 65536)",
+    "shortcut_read_hidden_windows": "load failed: PermissionError: policy called blocked API open",
+    "shortcut_subprocess_offload": "offset 0 window 0: guard: policy imported a disallowed module: subprocess",
+    "shortcut_tensor_subclass": "offset 0 window 0: RuntimeError: Creating a new Tensor subclass _Lazy but the raw Tensor object is already associated to a python object of type Tensor",
+    "shortcut_thread_offload": "load failed: ImportError: policy may only import torch and computational stdlib modules, not 'threading'",
+    "simple_static_placement": "balance constraint: balancedness 0.3828 is more than 0.005 below the frontier reference (0.6583)",
+    "weaker_without_snake": "balance constraint: balancedness 0.3538 is more than 0.005 below the frontier reference (0.6583)"
+  },
+  "mean_counts_test": {
+    "_anchor": [
+      140367.6976744186,
+      4818.581395348837,
+      1823.0515908695963,
+      4162.0,
+      1924258.6408361383
+    ],
+    "better_compact_log2phy": [
+      5762.279069767442,
+      260.2325581395349,
+      0.0,
+      173.0,
+      1338702.7106035803
+    ],
+    "better_lean_replication": [
+      4011.860465116279,
+      231.88372093023256,
+      0.0,
+      111.0,
+      1290366.7106035803
+    ],
+    "brute_force_sampled_placements": [
+      6529.813953488372,
+      305.51162790697674,
+      0.0,
+      195.0,
+      83266193.69488761
+    ],
+    "evolved_zigzag": [
+      5706.511627906977,
+      255.09302325581396,
+      0.0,
+      171.0,
+      1922261.6408361383
+    ],
+    "frontier_reference_zigzag": [
+      140367.6976744186,
+      4818.581395348837,
+      1823.0515908695963,
+      4162.0,
+      1924258.6408361383
+    ],
+    "greedy_deepseek": [
+      7443011.441860465,
+      242570.88372093023,
+      110632.12247422128,
+      224754.72093023255,
+      2161734.0826966036
+    ],
+    "probe_python_lists": [
+      1390401.8837209302,
+      20338.06976744186,
+      394659.2136120465,
+      3.0,
+      0.0
+    ],
+    "shortcut_claim_one_operation": [
+      5706.511627906977,
+      255.09302325581396,
+      0.0,
+      171.0,
+      1922261.6408361383
+    ],
+    "simple_static_placement": [
+      1096.2558139534883,
+      55.04651162790697,
+      0.0,
+      34.0,
+      66048.0
+    ],
+    "weaker_without_snake": [
+      5583.860465116279,
+      248.88372093023256,
+      0.0,
+      167.0,
+      1921781.6408361383
+    ]
+  },
+  "paired_vs_reference": {
+    "better_compact_log2phy": {
+      "balance_diff_max": 0.0,
+      "balance_diff_mean": 0.0,
+      "balance_diff_min": 0.0,
+      "balance_diff_se": 0.0,
+      "n_windows": 43,
+      "windows_variant_better_balanced": 0,
+      "windows_variant_cheaper": 43,
+      "work_ratio_max": 1.4198810545507492,
+      "work_ratio_min": 1.332845653947429,
+      "work_ratio_ref_over_variant_mean": 1.3891031297022498
+    },
+    "better_lean_replication": {
+      "balance_diff_max": 0.0,
+      "balance_diff_mean": 0.0,
+      "balance_diff_min": 0.0,
+      "balance_diff_se": 0.0,
+      "n_windows": 43,
+      "windows_variant_better_balanced": 0,
+      "windows_variant_cheaper": 43,
+      "work_ratio_max": 1.5224107796163664,
+      "work_ratio_min": 1.4251545158569083,
+      "work_ratio_ref_over_variant_mean": 1.487163894289808
+    },
+    "brute_force_sampled_placements": {
+      "balance_diff_max": 0.0019013438668263882,
+      "balance_diff_mean": -0.00024480781513807525,
+      "balance_diff_min": -0.012112335557688092,
+      "balance_diff_se": 0.0003019117819657053,
+      "n_windows": 43,
+      "windows_variant_better_balanced": 5,
+      "windows_variant_cheaper": 0,
+      "work_ratio_max": 0.02514276391573922,
+      "work_ratio_min": 0.024904504023272565,
+      "work_ratio_ref_over_variant_mean": 0.024910044951004347
+    },
+    "frontier_reference_zigzag": {
+      "balance_diff_max": 0.0,
+      "balance_diff_mean": 0.0,
+      "balance_diff_min": 0.0,
+      "balance_diff_se": 0.0,
+      "n_windows": 43,
+      "windows_variant_better_balanced": 0,
+      "windows_variant_cheaper": 0,
+      "work_ratio_max": 0.36078861626047626,
+      "work_ratio_min": 0.3588240172254613,
+      "work_ratio_ref_over_variant_mean": 0.35886970557511283
+    },
+    "greedy_deepseek": {
+      "balance_diff_max": 0.015458019344561258,
+      "balance_diff_mean": 0.0034301760834333046,
+      "balance_diff_min": -0.022184218676450818,
+      "balance_diff_se": 0.0012316151324283766,
+      "n_windows": 43,
+      "windows_variant_better_balanced": 34,
+      "windows_variant_cheaper": 0,
+      "work_ratio_max": 0.010828801074915248,
+      "work_ratio_min": 0.00993057325241599,
+      "work_ratio_ref_over_variant_mean": 0.009953692760201305
+    },
+    "probe_python_lists": {
+      "balance_diff_max": 0.0,
+      "balance_diff_mean": 0.0,
+      "balance_diff_min": 0.0,
+      "balance_diff_se": 0.0,
+      "n_windows": 43,
+      "windows_variant_better_balanced": 0,
+      "windows_variant_cheaper": 0,
+      "work_ratio_max": 0.057231650635739914,
+      "work_ratio_min": 0.056673656100024214,
+      "work_ratio_ref_over_variant_mean": 0.05668663271713388
+    },
+    "shortcut_bypass_dispatch_mode": null,
+    "shortcut_claim_one_operation": {
+      "balance_diff_max": 0.0,
+      "balance_diff_mean": 0.0,
+      "balance_diff_min": 0.0,
+      "balance_diff_se": 0.0,
+      "n_windows": 43,
+      "windows_variant_better_balanced": 0,
+      "windows_variant_cheaper": 0,
+      "work_ratio_max": 1.0,
+      "work_ratio_min": 1.0,
+      "work_ratio_ref_over_variant_mean": 1.0
+    },
+    "shortcut_disable_meter": null,
+    "shortcut_drop_experts": null,
+    "shortcut_empty_outputs": null,
+    "shortcut_empty_replicas": null,
+    "shortcut_global_placement": null,
+    "shortcut_impossible_values": null,
+    "shortcut_jit_script": null,
+    "shortcut_leave_mode_active": null,
+    "shortcut_malformed_policy": null,
+    "shortcut_numpy_offload": null,
+    "shortcut_oversized_lookup": null,
+    "shortcut_read_hidden_windows": null,
+    "shortcut_subprocess_offload": null,
+    "shortcut_tensor_subclass": null,
+    "shortcut_thread_offload": null,
+    "simple_static_placement": {
+      "balance_diff_max": -0.03218544992702482,
+      "balance_diff_mean": -0.2754959448590565,
+      "balance_diff_min": -0.4008273711452378,
+      "balance_diff_se": 0.01424552427145607,
+      "n_windows": 43,
+      "windows_variant_better_balanced": 0,
+      "windows_variant_cheaper": 43,
+      "work_ratio_max": 21.572887058237942,
+      "work_ratio_min": 19.690549072096477,
+      "work_ratio_ref_over_variant_mean": 21.529111756234652
+    },
+    "weaker_without_snake": {
+      "balance_diff_max": -0.02948691984374524,
+      "balance_diff_mean": -0.30455043678601307,
+      "balance_diff_min": -0.45528787877879756,
+      "balance_diff_se": 0.01674325830426067,
+      "n_windows": 43,
+      "windows_variant_better_balanced": 0,
+      "windows_variant_cheaper": 43,
+      "work_ratio_max": 1.0028496132507525,
+      "work_ratio_min": 1.0018866423866506,
+      "work_ratio_ref_over_variant_mean": 1.0019090370579087
+    }
+  },
+  "ranks_full_cohort": {
+    "ranks": {
+      "better_compact_log2phy": {
+        "rank_delta": 0.8709047835776026,
+        "terms": {
+          "balancedness": 0.0,
+          "speedup_vs_frontier_reference": 0.8709047835776026
+        }
+      },
+      "better_lean_replication": {
+        "rank_delta": 1.0904225506694916,
+        "terms": {
+          "balancedness": 0.0,
+          "speedup_vs_frontier_reference": 1.0904225506694916
+        }
+      },
+      "brute_force_sampled_placements": {
+        "rank_delta": -2.185203109242947,
+        "terms": {
+          "balancedness": -0.0008052190663566059,
+          "speedup_vs_frontier_reference": -2.1843978901765904
+        }
+      },
+      "evolved_zigzag": {
+        "rank_delta": 0.0,
+        "terms": {
+          "balancedness": 0.0,
+          "speedup_vs_frontier_reference": 0.0
+        }
+      },
+      "frontier_reference_zigzag": {
+        "rank_delta": -1.4362605542143076,
+        "terms": {
+          "balancedness": 0.0,
+          "speedup_vs_frontier_reference": -1.4362605542143076
+        }
+      },
+      "greedy_deepseek": {
+        "rank_delta": -2.2066240072354826,
+        "terms": {
+          "balancedness": 0.01128249595211517,
+          "speedup_vs_frontier_reference": -2.217906503187598
+        }
+      },
+      "probe_python_lists": {
+        "rank_delta": -2.11321193645176,
+        "terms": {
+          "balancedness": 0.0,
+          "speedup_vs_frontier_reference": -2.11321193645176
+        }
+      },
+      "shortcut_bypass_dispatch_mode": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      },
+      "shortcut_claim_one_operation": {
+        "rank_delta": 0.0,
+        "terms": {
+          "balancedness": 0.0,
+          "speedup_vs_frontier_reference": 0.0
+        }
+      },
+      "shortcut_disable_meter": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      },
+      "shortcut_drop_experts": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      },
+      "shortcut_empty_outputs": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      },
+      "shortcut_empty_replicas": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      },
+      "shortcut_global_placement": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      },
+      "shortcut_impossible_values": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      },
+      "shortcut_jit_script": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      },
+      "shortcut_leave_mode_active": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      },
+      "shortcut_malformed_policy": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      },
+      "shortcut_numpy_offload": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      },
+      "shortcut_oversized_lookup": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      },
+      "shortcut_read_hidden_windows": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      },
+      "shortcut_subprocess_offload": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      },
+      "shortcut_tensor_subclass": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      },
+      "shortcut_thread_offload": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      },
+      "simple_static_placement": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      },
+      "weaker_without_snake": {
+        "rank_delta": -4.4055536594380555,
+        "terms": {
+          "balancedness": -2.1653522478246248,
+          "speedup_vs_frontier_reference": -2.2402014116134312
+        }
+      }
+    },
+    "scales": {
+      "balancedness": 0.3040263517923315,
+      "speedup_vs_frontier_reference": 1.2438725943537174
+    }
+  },
+  "ranks_honest_cohort": {
+    "ranks": {
+      "better_compact_log2phy": {
+        "rank_delta": 0.6527375185918495,
+        "terms": {
+          "balancedness": 0.0,
+          "speedup_vs_frontier_reference": 0.6527375185918495
+        }
+      },
+      "better_lean_replication": {
+        "rank_delta": 0.8172646692980041,
+        "terms": {
+          "balancedness": 0.0,
+          "speedup_vs_frontier_reference": 0.8172646692980041
+        }
+      },
+      "brute_force_sampled_placements": {
+        "rank_delta": -1.6380859725010828,
+        "terms": {
+          "balancedness": -0.0008938415841802689,
+          "speedup_vs_frontier_reference": -1.6371921309169024
+        }
+      },
+      "evolved_zigzag": {
+        "rank_delta": 0.0,
+        "terms": {
+          "balancedness": 0.0,
+          "speedup_vs_frontier_reference": 0.0
+        }
+      },
+      "frontier_reference_zigzag": {
+        "rank_delta": -1.076468022552393,
+        "terms": {
+          "balancedness": 0.0,
+          "speedup_vs_frontier_reference": -1.076468022552393
+        }
+      },
+      "greedy_deepseek": {
+        "rank_delta": -1.6497823713013917,
+        "terms": {
+          "balancedness": 0.012524248961188747,
+          "speedup_vs_frontier_reference": -1.6623066202625805
+        }
+      },
+      "probe_python_lists": {
+        "rank_delta": -1.5838387176975346,
+        "terms": {
+          "balancedness": 0.0,
+          "speedup_vs_frontier_reference": -1.5838387176975346
+        }
+      },
+      "simple_static_placement": {
+        "rank_delta": -4.082687715323878,
+        "terms": {
+          "balancedness": -2.403671204982006,
+          "speedup_vs_frontier_reference": -1.679016510341872
+        }
+      },
+      "weaker_without_snake": {
+        "rank_delta": -4.082687715323878,
+        "terms": {
+          "balancedness": -2.403671204982006,
+          "speedup_vs_frontier_reference": -1.679016510341872
+        }
+      }
+    },
+    "scales": {
+      "balancedness": 0.2738827768485804,
+      "speedup_vs_frontier_reference": 1.6596174752153463
+    }
+  },
+  "scored_metrics": {
+    "balancedness": {
+      "coef": 1.0,
+      "higher": true
+    },
+    "speedup_vs_frontier_reference": {
+      "coef": 1.0,
+      "higher": true
+    }
+  },
+  "test": {
+    "better_compact_log2phy": {
+      "balance_change_vs_frontier_reference": 0.0,
+      "balancedness": 0.6583241442514451,
+      "diagnostic_cpu_ms_per_rebalance": 1.5749316279069767,
+      "mean_rebalance_cost": 89804.67426412179,
+      "num_rebalances": 43.0,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 3.8698197343221943,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.4187450192039957
+    },
+    "better_lean_replication": {
+      "balance_change_vs_frontier_reference": 0.0,
+      "balancedness": 0.6583241442514451,
+      "diagnostic_cpu_ms_per_rebalance": 1.4591997674418604,
+      "mean_rebalance_cost": 83885.74682226132,
+      "num_rebalances": 43.0,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 4.142871868781517,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.4187450192039957
+    },
+    "brute_force_sampled_placements": {
+      "balance_change_vs_frontier_reference": -0.0002448078151380262,
+      "balancedness": 0.6580793364363071,
+      "diagnostic_cpu_ms_per_rebalance": 117.12276697674419,
+      "mean_rebalance_cost": 5006706.947274651,
+      "num_rebalances": 43.0,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 0.06941247098371678,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.4187450192039957
+    },
+    "evolved_zigzag": {
+      "balance_change_vs_frontier_reference": 0.0,
+      "balancedness": 0.6583241442514451,
+      "diagnostic_cpu_ms_per_rebalance": 1.6360658139534883,
+      "mean_rebalance_cost": 124717.3031013311,
+      "num_rebalances": 43.0,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 2.786525141738459,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.4187450192039957
+    },
+    "frontier_reference_zigzag": {
+      "balance_change_vs_frontier_reference": 0.0,
+      "balancedness": 0.6583241442514451,
+      "diagnostic_cpu_ms_per_rebalance": 5.382781627906978,
+      "mean_rebalance_cost": 347527.900701675,
+      "num_rebalances": 43.0,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 1.0,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.4187450192039957
+    },
+    "greedy_deepseek": {
+      "balance_change_vs_frontier_reference": 0.003430176083433323,
+      "balancedness": 0.6617543203348785,
+      "diagnostic_cpu_ms_per_rebalance": 180.68789230232557,
+      "mean_rebalance_cost": 12531645.034096286,
+      "num_rebalances": 43.0,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 0.027732025584519503,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.4158496866860329
+    },
+    "probe_python_lists": {
+      "balance_change_vs_frontier_reference": 0.0,
+      "balancedness": 0.6583241442514451,
+      "diagnostic_cpu_ms_per_rebalance": 45.893964627906975,
+      "mean_rebalance_cost": 2200118.380712465,
+      "num_rebalances": 43.0,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 0.15795872792496507,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.4187450192039957
+    },
+    "shortcut_bypass_dispatch_mode": {
+      "balance_change_vs_frontier_reference": -0.6583241442514451,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.0,
+      "mean_rebalance_cost": 500000000.0,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 0.0,
+      "worst_window_balancedness": 0.0
+    },
+    "shortcut_claim_one_operation": {
+      "balance_change_vs_frontier_reference": 0.0,
+      "balancedness": 0.6583241442514451,
+      "diagnostic_cpu_ms_per_rebalance": 1.6131523255813953,
+      "mean_rebalance_cost": 124717.3031013311,
+      "num_rebalances": 43.0,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 2.786525141738459,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.4187450192039957
+    },
+    "shortcut_disable_meter": {
+      "balance_change_vs_frontier_reference": -0.6583241442514451,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.0,
+      "mean_rebalance_cost": 500000000.0,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 0.0,
+      "worst_window_balancedness": 0.0
+    },
+    "shortcut_drop_experts": {
+      "balance_change_vs_frontier_reference": -0.6583241442514451,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.0,
+      "mean_rebalance_cost": 500000000.0,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 0.0,
+      "worst_window_balancedness": 0.0
+    },
+    "shortcut_empty_outputs": {
+      "balance_change_vs_frontier_reference": -0.6583241442514451,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.0,
+      "mean_rebalance_cost": 500000000.0,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 0.0,
+      "worst_window_balancedness": 0.0
+    },
+    "shortcut_empty_replicas": {
+      "balance_change_vs_frontier_reference": -0.6583241442514451,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.0,
+      "mean_rebalance_cost": 500000000.0,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 0.0,
+      "worst_window_balancedness": 0.0
+    },
+    "shortcut_global_placement": {
+      "balance_change_vs_frontier_reference": -0.6583241442514451,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.0,
+      "mean_rebalance_cost": 500000000.0,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 0.0,
+      "worst_window_balancedness": 0.0
+    },
+    "shortcut_impossible_values": {
+      "balance_change_vs_frontier_reference": -0.6583241442514451,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.0,
+      "mean_rebalance_cost": 500000000.0,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 0.0,
+      "worst_window_balancedness": 0.0
+    },
+    "shortcut_jit_script": {
+      "balance_change_vs_frontier_reference": -0.6583241442514451,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.0,
+      "mean_rebalance_cost": 500000000.0,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 0.0,
+      "worst_window_balancedness": 0.0
+    },
+    "shortcut_leave_mode_active": {
+      "balance_change_vs_frontier_reference": -0.6583241442514451,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.0,
+      "mean_rebalance_cost": 500000000.0,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 0.0,
+      "worst_window_balancedness": 0.0
+    },
+    "shortcut_malformed_policy": {
+      "balance_change_vs_frontier_reference": -0.6583241442514451,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.0,
+      "mean_rebalance_cost": 500000000.0,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 0.0,
+      "worst_window_balancedness": 0.0
+    },
+    "shortcut_numpy_offload": {
+      "balance_change_vs_frontier_reference": -0.6583241442514451,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.0,
+      "mean_rebalance_cost": 500000000.0,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 0.0,
+      "worst_window_balancedness": 0.0
+    },
+    "shortcut_oversized_lookup": {
+      "balance_change_vs_frontier_reference": -0.6583241442514451,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.0,
+      "mean_rebalance_cost": 500000000.0,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 0.0,
+      "worst_window_balancedness": 0.0
+    },
+    "shortcut_read_hidden_windows": {
+      "balance_change_vs_frontier_reference": -0.6583241442514451,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.0,
+      "mean_rebalance_cost": 500000000.0,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 0.0,
+      "worst_window_balancedness": 0.0
+    },
+    "shortcut_subprocess_offload": {
+      "balance_change_vs_frontier_reference": -0.6583241442514451,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.0,
+      "mean_rebalance_cost": 500000000.0,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 0.0,
+      "worst_window_balancedness": 0.0
+    },
+    "shortcut_tensor_subclass": {
+      "balance_change_vs_frontier_reference": -0.6583241442514451,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.0,
+      "mean_rebalance_cost": 500000000.0,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 0.0,
+      "worst_window_balancedness": 0.0
+    },
+    "shortcut_thread_offload": {
+      "balance_change_vs_frontier_reference": -0.6583241442514451,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.0,
+      "mean_rebalance_cost": 500000000.0,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 0.0,
+      "worst_window_balancedness": 0.0
+    },
+    "simple_static_placement": {
+      "balance_change_vs_frontier_reference": -0.27549594485905643,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.3829160465116279,
+      "mean_rebalance_cost": 5794.182325581394,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.0
+    },
+    "weaker_without_snake": {
+      "balance_change_vs_frontier_reference": -0.30455043678601307,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 1.5412272093023256,
+      "mean_rebalance_cost": 124479.64263621482,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.0
+    }
+  },
+  "train_honest": {
+    "better_compact_log2phy": {
+      "balance_change_vs_frontier_reference": 0.0,
+      "balancedness": 0.6673626145130609,
+      "diagnostic_cpu_ms_per_rebalance": 1.4905,
+      "mean_rebalance_cost": 89369.59333388924,
+      "num_rebalances": 43.0,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 3.8886593049975455,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.40848129475799105
+    },
+    "better_lean_replication": {
+      "balance_change_vs_frontier_reference": 0.0,
+      "balancedness": 0.6673626145130609,
+      "diagnostic_cpu_ms_per_rebalance": 1.402673953488372,
+      "mean_rebalance_cost": 83450.66589202877,
+      "num_rebalances": 43.0,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 4.164471271581201,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.40848129475799105
+    },
+    "brute_force_sampled_placements": {
+      "balance_change_vs_frontier_reference": -0.0006128684795791983,
+      "balancedness": 0.6667497460334817,
+      "diagnostic_cpu_ms_per_rebalance": 111.48133111627907,
+      "mean_rebalance_cost": 5006706.947274651,
+      "num_rebalances": 43.0,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 0.06941247098371678,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.4068351077009812
+    },
+    "evolved_zigzag": {
+      "balance_change_vs_frontier_reference": 0.0,
+      "balancedness": 0.6673626145130609,
+      "diagnostic_cpu_ms_per_rebalance": 1.5585002325581396,
+      "mean_rebalance_cost": 124717.3031013311,
+      "num_rebalances": 43.0,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 2.786525141738459,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.40848129475799105
+    },
+    "frontier_reference_zigzag": {
+      "balance_change_vs_frontier_reference": 0.0,
+      "balancedness": 0.6673626145130609,
+      "diagnostic_cpu_ms_per_rebalance": 5.248996976744186,
+      "mean_rebalance_cost": 347527.900701675,
+      "num_rebalances": 43.0,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 1.0,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.40848129475799105
+    },
+    "greedy_deepseek": {
+      "balance_change_vs_frontier_reference": -0.0003354336500688282,
+      "balancedness": 0.6670271808629921,
+      "diagnostic_cpu_ms_per_rebalance": 180.3021773488372,
+      "mean_rebalance_cost": 12531451.169910239,
+      "num_rebalances": 43.0,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 0.02773245460478974,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.40942276024582586
+    },
+    "probe_python_lists": {
+      "balance_change_vs_frontier_reference": 0.0,
+      "balancedness": 0.6673626145130609,
+      "diagnostic_cpu_ms_per_rebalance": 45.823300674418604,
+      "mean_rebalance_cost": 2200118.380712465,
+      "num_rebalances": 43.0,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 0.15795872792496507,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.40848129475799105
+    },
+    "simple_static_placement": {
+      "balance_change_vs_frontier_reference": -0.26760309965013457,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 0.3979846511627907,
+      "mean_rebalance_cost": 5794.182325581394,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.0
+    },
+    "weaker_without_snake": {
+      "balance_change_vs_frontier_reference": -0.30982721875258085,
+      "balancedness": 0.0,
+      "diagnostic_cpu_ms_per_rebalance": 1.5647411627906977,
+      "mean_rebalance_cost": 124479.64263621482,
+      "num_rebalances": 43.0,
+      "run_failed": 1.0,
+      "speedup_vs_frontier_reference": 0.0,
+      "valid_fraction": 1.0,
+      "worst_window_balancedness": 0.0
+    }
+  },
+  "work_measure_calibration": {
+    "methods": {
+      "better_compact_log2phy": {
+        "cpu_ms_unmetered": 1.5749316279069767,
+        "units_per_cpu_ms": 57021.31614657376,
+        "work_units": 89804.67426412179
+      },
+      "better_lean_replication": {
+        "cpu_ms_unmetered": 1.4591997674418604,
+        "units_per_cpu_ms": 57487.50013120025,
+        "work_units": 83885.74682226132
+      },
+      "brute_force_sampled_placements": {
+        "cpu_ms_unmetered": 117.12276697674419,
+        "units_per_cpu_ms": 42747.51251623674,
+        "work_units": 5006706.947274651
+      },
+      "evolved_zigzag": {
+        "cpu_ms_unmetered": 1.6360658139534883,
+        "units_per_cpu_ms": 76230.00373069142,
+        "work_units": 124717.3031013311
+      },
+      "frontier_reference_zigzag": {
+        "cpu_ms_unmetered": 5.382781627906978,
+        "units_per_cpu_ms": 64562.883045435105,
+        "work_units": 347527.900701675
+      },
+      "greedy_deepseek": {
+        "cpu_ms_unmetered": 180.68789230232557,
+        "units_per_cpu_ms": 69355.20069672646,
+        "work_units": 12531645.034096286
+      },
+      "probe_python_lists": {
+        "cpu_ms_unmetered": 45.893964627906975,
+        "units_per_cpu_ms": 47939.16582605783,
+        "work_units": 2200118.380712465
+      },
+      "shortcut_claim_one_operation": {
+        "cpu_ms_unmetered": 1.6131523255813953,
+        "units_per_cpu_ms": 77312.78759207182,
+        "work_units": 124717.3031013311
+      }
+    },
+    "spearman_work_vs_cpu": 0.9761904761904762
+  }
+}

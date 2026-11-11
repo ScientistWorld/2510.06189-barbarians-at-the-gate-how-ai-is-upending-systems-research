@@ -3,14 +3,14 @@ Python 3.12.13
 torch 2.5.1+cpu | sys.monitoring True
 == reproduce
 [train] running frozen anchor frontier_reference_zigzag
-[train] evolved_zigzag: speedup=7.5181 balancedness=0.6674 (12s) ok
-[train] frontier_reference_zigzag: speedup=1.0000 balancedness=0.6674 (19s) ok
-[train] greedy_deepseek: speedup=0.0205 balancedness=0.6670 (370s) ok
+[train] evolved_zigzag: speedup=2.7865 balancedness=0.6674 (13s) ok
+[train] frontier_reference_zigzag: speedup=1.0000 balancedness=0.6674 (21s) ok
+[train] greedy_deepseek: speedup=0.0277 balancedness=0.6670 (393s) ok
 [train] wrote scoring/scores_train.json (3 methods, 0 failed)
 [test] running frozen anchor frontier_reference_zigzag
-[test] evolved_zigzag: speedup=7.5181 balancedness=0.6583 (13s) ok
+[test] evolved_zigzag: speedup=2.7865 balancedness=0.6583 (13s) ok
 [test] frontier_reference_zigzag: speedup=1.0000 balancedness=0.6583 (20s) ok
-[test] greedy_deepseek: speedup=0.0205 balancedness=0.6618 (372s) ok
+[test] greedy_deepseek: speedup=0.0277 balancedness=0.6618 (406s) ok
 [test] wrote scoring/scores_test.json (3 methods, 0 failed)
 reproduce exit 0
 == validate
@@ -38,23 +38,23 @@ reproduce exit 0
 All checks passed.
 validate exit 0
 == audit
-[audit 13:10:04] combined_test: /home/user/eval/test/evaluate.py --outputs-dir on combined
+[audit 15:17:35] combined_test: /home/user/eval/test/evaluate.py --outputs-dir on combined
 [test] running frozen anchor frontier_reference_zigzag
-[test] better_compact_log2phy: speedup=9.5854 balancedness=0.6583 (13s) ok
-[test] better_lean_replication: speedup=11.2800 balancedness=0.6583 (14s) ok
-[test] brute_force_sampled_placements: speedup=0.2383 balancedness=0.6581 (26s) ok
-[test] evolved_zigzag: speedup=7.5181 balancedness=0.6583 (13s) ok
+[test] better_compact_log2phy: speedup=3.8698 balancedness=0.6583 (13s) ok
+[test] better_lean_replication: speedup=4.1429 balancedness=0.6583 (14s) ok
+[test] brute_force_sampled_placements: speedup=0.0694 balancedness=0.6581 (25s) ok
+[test] evolved_zigzag: speedup=2.7865 balancedness=0.6583 (15s) ok
 [test] frontier_reference_zigzag: speedup=1.0000 balancedness=0.6583 (22s) ok
-[test] greedy_deepseek: speedup=0.0205 balancedness=0.6618 (441s) ok
-[test] probe_python_lists: speedup=1.1094 balancedness=0.6583 (73s) ok
-[test] shortcut_bypass_dispatch_mode: speedup=0.0000 balancedness=0.0000 (6s) FAILED: offset 0 window 0: guard: policy called _disable_current_modes, which bypasses the work meter
-[test] shortcut_claim_one_operation: speedup=7.5181 balancedness=0.6583 (17s) ok
-[test] shortcut_disable_meter: speedup=0.0000 balancedness=0.0000 (8s) FAILED: offset 0 window 0: guard: policy called blocked API sys.monitoring.set_events
-[test] shortcut_drop_experts: speedup=0.0000 balancedness=0.0000 (10s) FAILED: offset 0 window 0: invalid placement: layer 0: logical expert 0 has no replica
-[test] shortcut_empty_outputs: speedup=0.0000 balancedness=0.0000 (9s) FAILED: offset 0 window 0: invalid output: rebalance_experts must return (phy2log, log2phy, logcnt)
-[test] shortcut_empty_replicas: speedup=0.0000 balancedness=0.0000 (9s) FAILED: offset 0 window 0: invalid placement: layer 0: phy2log must list exactly 288 physical experts
-[test] shortcut_global_placement: speedup=0.0000 balancedness=0.0000 (8s) FAILED: offset 0 window 0: invalid placement: layer 0: expert group 5 is split across nodes
-[test] shortcut_impossible_values: speedup=0.0000 balancedness=0.0000 (10s) FAILED: offset 0 window 0: invalid placement: log2phy entries beyond each expert's replica count must be -1
+[test] greedy_deepseek: speedup=0.0277 balancedness=0.6618 (415s) ok
+[test] probe_python_lists: speedup=0.1580 balancedness=0.6583 (73s) ok
+[test] shortcut_bypass_dispatch_mode: speedup=0.0000 balancedness=0.0000 (10s) FAILED: offset 0 window 0: guard: policy called _disable_current_modes, which bypasses the work meter
+[test] shortcut_claim_one_operation: speedup=2.7865 balancedness=0.6583 (14s) ok
+[test] shortcut_disable_meter: speedup=0.0000 balancedness=0.0000 (6s) FAILED: offset 0 window 0: guard: policy called blocked API sys.monitoring.set_events
+[test] shortcut_drop_experts: speedup=0.0000 balancedness=0.0000 (6s) FAILED: offset 0 window 0: invalid placement: layer 0: logical expert 0 has no replica
+[test] shortcut_empty_outputs: speedup=0.0000 balancedness=0.0000 (6s) FAILED: offset 0 window 0: invalid output: rebalance_experts must return (phy2log, log2phy, logcnt)
+[test] shortcut_empty_replicas: speedup=0.0000 balancedness=0.0000 (6s) FAILED: offset 0 window 0: invalid placement: layer 0: phy2log must list exactly 288 physical experts
+[test] shortcut_global_placement: speedup=0.0000 balancedness=0.0000 (6s) FAILED: offset 0 window 0: invalid placement: layer 0: expert group 5 is split across nodes
+[test] shortcut_impossible_values: speedup=0.0000 balancedness=0.0000 (6s) FAILED: offset 0 window 0: invalid placement: log2phy entries beyond each expert's replica count must be -1
 [test] shortcut_jit_script: speedup=0.0000 balancedness=0.0000 (6s) FAILED: load failed: PermissionError: policy called blocked API torch.jit.script
 [test] shortcut_leave_mode_active: speedup=0.0000 balancedness=0.0000 (6s) FAILED: policy process exited unexpectedly
 [test] shortcut_malformed_policy: speedup=0.0000 balancedness=0.0000 (6s) FAILED: load failed: SyntaxError: invalid syntax (shortcut_malformed_policy.py, line 2)
@@ -62,42 +62,83 @@ validate exit 0
 [test] shortcut_oversized_lookup: speedup=0.0000 balancedness=0.0000 (0s) FAILED: policy file is 79047 bytes (limit 65536)
 [test] shortcut_read_hidden_windows: speedup=0.0000 balancedness=0.0000 (6s) FAILED: load failed: PermissionError: policy called blocked API open
 [test] shortcut_subprocess_offload: speedup=0.0000 balancedness=0.0000 (6s) FAILED: offset 0 window 0: guard: policy imported a disallowed module: subprocess
-[test] shortcut_tensor_subclass: speedup=0.0000 balancedness=0.0000 (6s) FAILED: offset 0 window 0: RuntimeError: Creating a new Tensor subclass _Lazy but the raw Tensor object is already associated to a python object of type Tensor
+[test] shortcut_tensor_subclass: speedup=0.0000 balancedness=0.0000 (7s) FAILED: offset 0 window 0: RuntimeError: Creating a new Tensor subclass _Lazy but the raw Tensor object is already associated to a python object of type Tensor
 [test] shortcut_thread_offload: speedup=0.0000 balancedness=0.0000 (6s) FAILED: load failed: ImportError: policy may only import torch and computational stdlib modules, not 'threading'
-[test] simple_static_placement: speedup=0.0000 balancedness=0.0000 (12s) FAILED: balance constraint: balancedness 0.3828 is more than 0.005 below the frontier reference (0.6583)
-[test] weaker_without_snake: speedup=0.0000 balancedness=0.0000 (13s) FAILED: balance constraint: balancedness 0.3538 is more than 0.005 below the frontier reference (0.6583)
+[test] simple_static_placement: speedup=0.0000 balancedness=0.0000 (13s) FAILED: balance constraint: balancedness 0.3828 is more than 0.005 below the frontier reference (0.6583)
+[test] weaker_without_snake: speedup=0.0000 balancedness=0.0000 (14s) FAILED: balance constraint: balancedness 0.3538 is more than 0.005 below the frontier reference (0.6583)
 [test] wrote /home/user/redteam/hardening/results/combined_scores_test.json (26 methods, 18 failed)
-[audit 13:22:55] combined_test: exit 0 after 772s
-[audit 13:22:55] honest_train: /home/user/eval/train/evaluate.py --outputs-dir on train
+[audit 15:29:51] combined_test: exit 0 after 735s
+[audit 15:29:51] honest_train: /home/user/eval/train/evaluate.py --outputs-dir on train
 [train] running frozen anchor frontier_reference_zigzag
-[train] better_compact_log2phy: speedup=9.6187 balancedness=0.6674 (11s) ok
-[train] better_lean_replication: speedup=11.3262 balancedness=0.6674 (12s) ok
-[train] brute_force_sampled_placements: speedup=0.2383 balancedness=0.6667 (22s) ok
-[train] evolved_zigzag: speedup=7.5181 balancedness=0.6674 (13s) ok
-[train] frontier_reference_zigzag: speedup=1.0000 balancedness=0.6674 (20s) ok
-[train] greedy_deepseek: speedup=0.0205 balancedness=0.6670 (499s) ok
-[train] probe_python_lists: speedup=1.1094 balancedness=0.6674 (118s) ok
-[train] simple_static_placement: speedup=0.0000 balancedness=0.0000 (31s) FAILED: balance constraint: balancedness 0.3998 is more than 0.005 below the frontier reference (0.6674)
-[train] weaker_without_snake: speedup=0.0000 balancedness=0.0000 (31s) FAILED: balance constraint: balancedness 0.3575 is more than 0.005 below the frontier reference (0.6674)
+[train] better_compact_log2phy: speedup=3.8887 balancedness=0.6674 (14s) ok
+[train] better_lean_replication: speedup=4.1645 balancedness=0.6674 (13s) ok
+[train] brute_force_sampled_placements: speedup=0.0694 balancedness=0.6667 (24s) ok
+[train] evolved_zigzag: speedup=2.7865 balancedness=0.6674 (14s) ok
+[train] frontier_reference_zigzag: speedup=1.0000 balancedness=0.6674 (21s) ok
+[train] greedy_deepseek: speedup=0.0277 balancedness=0.6670 (398s) ok
+[train] probe_python_lists: speedup=0.1580 balancedness=0.6674 (80s) ok
+[train] simple_static_placement: speedup=0.0000 balancedness=0.0000 (16s) FAILED: balance constraint: balancedness 0.3998 is more than 0.005 below the frontier reference (0.6674)
+[train] weaker_without_snake: speedup=0.0000 balancedness=0.0000 (15s) FAILED: balance constraint: balancedness 0.3575 is more than 0.005 below the frontier reference (0.6674)
 [train] wrote /home/user/redteam/hardening/results/honest_scores_train.json (9 methods, 2 failed)
-[audit 13:35:53] honest_train: exit 0 after 777s
-[audit 13:35:53] inflate_frontier: /home/user/eval/test/evaluate.py --outputs-dir on inflate_frontier
+[audit 15:40:06] honest_train: exit 0 after 616s
+[audit 15:40:06] inflate_frontier: /home/user/eval/test/evaluate.py --outputs-dir on inflate_frontier
 [test] running frozen anchor frontier_reference_zigzag
-[test] evolved_zigzag: speedup=7.5181 balancedness=0.6583 (20s) ok
-[test] frontier_reference_zigzag: speedup=0.7696 balancedness=0.6583 (60s) ok
+[test] evolved_zigzag: speedup=2.7865 balancedness=0.6583 (15s) ok
+[test] frontier_reference_zigzag: speedup=0.3668 balancedness=0.6583 (43s) ok
 [test] wrote /home/user/redteam/hardening/.work/inflate_frontier/scores.json (2 methods, 0 failed)
-[audit 13:37:49] inflate_frontier: exit 0 after 116s
-[audit 13:37:49] shortcut_inflate_baseline: reference unchanged = True
-[audit 13:37:49] remove_frontier: /home/user/eval/test/evaluate.py --outputs-dir on remove_frontier
+[audit 15:41:27] inflate_frontier: exit 0 after 81s
+[audit 15:41:27] shortcut_inflate_baseline: reference unchanged = True
+[audit 15:41:27] remove_frontier: /home/user/eval/test/evaluate.py --outputs-dir on remove_frontier
 [test] running frozen anchor frontier_reference_zigzag
-[test] evolved_zigzag: speedup=7.5181 balancedness=0.6583 (26s) ok
+[test] evolved_zigzag: speedup=2.7865 balancedness=0.6583 (14s) ok
 [test] wrote /home/user/redteam/hardening/.work/remove_frontier/scores.json (1 methods, 0 failed)
-[audit 13:39:01] remove_frontier: exit 0 after 72s
-[audit 13:39:01] shortcut_remove_frontier: reference unchanged = True
-[audit 13:39:01] flatten: /home/user/eval/test/evaluate.py --outputs-dir on flatten
+[audit 15:42:04] remove_frontier: exit 0 after 37s
+[audit 15:42:04] shortcut_remove_frontier: reference unchanged = True
+[audit 15:42:04] flatten: /home/user/eval/test/evaluate.py --outputs-dir on flatten
 [test] running frozen anchor frontier_reference_zigzag
-[test] evolved_zigzag: speedup=7.5181 balancedness=0.6583 (28s) ok
+[test] evolved_zigzag: speedup=2.7865 balancedness=0.6583 (15s) ok
 [test] wrote /home/user/redteam/hardening/.work/flatten/scores.json (1 methods, 0 failed)
-[audit 13:40:28] flatten: exit 0 after 86s
-[audit 13:40:28] shortcut_flatten_workload: reference unchanged = True
-[audit 13:40:28] forged: /home/user/eval/test/evaluate.py --outputs-dir on forged
+[audit 15:42:43] flatten: exit 0 after 39s
+[audit 15:42:43] shortcut_flatten_workload: reference unchanged = True
+[audit 15:42:43] forged: /home/user/eval/test/evaluate.py --outputs-dir on forged
+[test] running frozen anchor frontier_reference_zigzag
+[test] evolved_zigzag: speedup=2.7865 balancedness=0.6583 (15s) ok
+[test] wrote /home/user/redteam/hardening/.work/forged/scores.json (1 methods, 0 failed)
+[audit 15:43:20] forged: exit 0 after 38s
+[audit 15:43:20] shortcut_forged_summary: reference unchanged = True
+[audit 15:43:20] roster: /home/user/eval/test/evaluate.py --outputs-dir on roster
+[test] running frozen anchor frontier_reference_zigzag
+[test] evolved_zigzag: speedup=2.7865 balancedness=0.6583 (20s) ok
+[test] wrote /home/user/redteam/hardening/.work/roster/scores.json (1 methods, 0 failed)
+[audit 15:44:05] roster: exit 0 after 45s
+[audit 15:44:05] shortcut_omit_method_from_roster: reference unchanged = True
+[audit 15:44:05] wrote results/summary.json and results/summary.md
+| method | speedup | balancedness | failed | rank Δ honest | rank Δ full | reason |
+|---|---:|---:|---:|---:|---:|---|
+| evolved_zigzag | 2.7865 | 0.6583 | 0 | 0.000 | 0.000 |  |
+| frontier_reference_zigzag | 1.0000 | 0.6583 | 0 | -1.076 | -1.436 |  |
+| greedy_deepseek | 0.0277 | 0.6618 | 0 | -1.650 | -2.207 |  |
+| better_compact_log2phy | 3.8698 | 0.6583 | 0 | 0.653 | 0.871 |  |
+| better_lean_replication | 4.1429 | 0.6583 | 0 | 0.817 | 1.090 |  |
+| brute_force_sampled_placements | 0.0694 | 0.6581 | 0 | -1.638 | -2.185 |  |
+| probe_python_lists | 0.1580 | 0.6583 | 0 | -1.584 | -2.113 |  |
+| shortcut_bypass_dispatch_mode | 0.0000 | 0.0000 | 1 | nan | -4.406 | offset 0 window 0: guard: policy called _disable_current_modes, which bypasses the work meter |
+| shortcut_claim_one_operation | 2.7865 | 0.6583 | 0 | nan | 0.000 |  |
+| shortcut_disable_meter | 0.0000 | 0.0000 | 1 | nan | -4.406 | offset 0 window 0: guard: policy called blocked API sys.monitoring.set_events |
+| shortcut_drop_experts | 0.0000 | 0.0000 | 1 | nan | -4.406 | offset 0 window 0: invalid placement: layer 0: logical expert 0 has no replica |
+| shortcut_empty_outputs | 0.0000 | 0.0000 | 1 | nan | -4.406 | offset 0 window 0: invalid output: rebalance_experts must return (phy2log, log2phy, logcnt) |
+| shortcut_empty_replicas | 0.0000 | 0.0000 | 1 | nan | -4.406 | offset 0 window 0: invalid placement: layer 0: phy2log must list exactly 288 physical experts |
+| shortcut_global_placement | 0.0000 | 0.0000 | 1 | nan | -4.406 | offset 0 window 0: invalid placement: layer 0: expert group 5 is split across nodes |
+| shortcut_impossible_values | 0.0000 | 0.0000 | 1 | nan | -4.406 | offset 0 window 0: invalid placement: log2phy entries beyond each expert's replica count must be -1 |
+| shortcut_jit_script | 0.0000 | 0.0000 | 1 | nan | -4.406 | load failed: PermissionError: policy called blocked API torch.jit.script |
+| shortcut_leave_mode_active | 0.0000 | 0.0000 | 1 | nan | -4.406 | policy process exited unexpectedly |
+| shortcut_malformed_policy | 0.0000 | 0.0000 | 1 | nan | -4.406 | load failed: SyntaxError: invalid syntax (shortcut_malformed_policy.py, line 2) |
+| shortcut_numpy_offload | 0.0000 | 0.0000 | 1 | nan | -4.406 | offset 0 window 0: guard: policy called blocked API Tensor.numpy |
+| shortcut_oversized_lookup | 0.0000 | 0.0000 | 1 | nan | -4.406 | policy file is 79047 bytes (limit 65536) |
+| shortcut_read_hidden_windows | 0.0000 | 0.0000 | 1 | nan | -4.406 | load failed: PermissionError: policy called blocked API open |
+| shortcut_subprocess_offload | 0.0000 | 0.0000 | 1 | nan | -4.406 | offset 0 window 0: guard: policy imported a disallowed module: subprocess |
+| shortcut_tensor_subclass | 0.0000 | 0.0000 | 1 | nan | -4.406 | offset 0 window 0: RuntimeError: Creating a new Tensor subclass _Lazy but the raw Tensor object is already ass |
+| shortcut_thread_offload | 0.0000 | 0.0000 | 1 | nan | -4.406 | load failed: ImportError: policy may only import torch and computational stdlib modules, not 'threading' |
+| simple_static_placement | 0.0000 | 0.0000 | 1 | -4.083 | -4.406 | balance constraint: balancedness 0.3828 is more than 0.005 below the frontier reference (0.6583) |
+| weaker_without_snake | 0.0000 | 0.0000 | 1 | -4.083 | -4.406 | balance constraint: balancedness 0.3538 is more than 0.005 below the frontier reference (0.6583) |
+audit exit 0
