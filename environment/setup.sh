@@ -1,19 +1,12 @@
 #!/bin/bash
 # Install Python packages into the container overlay.
 #
-# This script is run by the system on the login node (which has internet)
-# inside the container with a persistent overlay. Changes persist across
-# job submissions without rebuilding the container.
+# Run by the system on the login node (internet) inside the container.
+# Install into the SYSTEM Python with uv; do NOT create a virtual environment.
 #
-# Put ALL pip installs here, NOT in container.def.
-# Only use container.def for the base Docker image and apt-get packages.
-#
-# IMPORTANT: Install into the SYSTEM Python, not a virtual environment.
-# The overlay may be recreated on container rebuilds — a venv inside
-# it will be lost and all subsequent jobs will fail.
-# Use: uv pip install --system <packages>
-# Do NOT create a venv (python -m venv, virtualenv, etc.).
+# torch is pinned: the evaluator's work meter counts PyTorch kernel launches,
+# so the torch version is part of the measurement.
 
 set -e
 
-uv pip install --system numpy torch
+uv pip install --system --extra-index-url https://download.pytorch.org/whl/cpu "torch==2.5.1+cpu" numpy

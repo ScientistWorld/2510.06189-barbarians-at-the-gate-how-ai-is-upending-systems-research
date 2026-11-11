@@ -2,19 +2,23 @@
 
 ## Research Problem
 
-Improve expert-parallel load balancing for MoE inference under changing expert popularity. The central question is how to place replicated experts across GPUs with low rebalancing work while preserving balanced token load.
+Design expert-parallel load-balancing policies for MoE inference. They must rebalance cheaply when expert popularity shifts, while keeping the most loaded GPU close to the average on the traffic that follows.
 
 ## Core Contribution
 
-Work within the EPLB policy-design problem: deciding replica counts and physical placement for logical experts under fixed traces and cluster dimensions.
+Work inside the EPLB policy-design problem: choosing replica counts and the hierarchical placement (groups to nodes, replicas to GPUs) from the last window's per-expert load.
 
 ## Approach Scope
 
-Improvements should modify the placement or replication policy for the same EPLB interface. Candidate policies may use different deterministic heuristics, vectorized layouts, local repair steps, or search over placements, as long as they output the same artifact format.
+Two kinds of improvement count:
+- doing the same placement work with fewer operations (vectorisation, fewer passes over the data, cheaper replication or packing steps);
+- placing replicas so that balance on the next, unseen window improves (for example by anticipating load drift with state kept across rebalances of a sequence).
+
+Both must keep placements valid and balance no worse than the reference.
 
 ## Out of Bounds
 
-- Replacing the task with MoE router training or changing expert popularity upstream.
-- Changing the evaluation to use wall-clock runtime instead of operation-count work.
-- Adding more GPUs, replicas, or traces to make the benchmark easier.
-- Skipping validity or balance constraints to optimize only operation count.
+- Using the held-out layers or the raw trace, or memorising visible windows.
+- Changing the cluster configuration, the windowing, or the evaluator and its work measure.
+- Escaping the work measure (threads, processes, native code, TorchScript, disabling the meter) or self-reporting work.
+- Trading away validity or balance for speed.

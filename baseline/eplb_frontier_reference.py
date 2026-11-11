@@ -1,95 +1,264 @@
-#!/usr/bin/env python3
-"""Frontier-reference-style EPLB baseline from the paper.
+# SPDX-License-Identifier: Apache-2.0
+"""Frontier-lab reference EPLB policy (reconstruction).
 
-The paper's non-public reference replaces the final greedy GPU bin-packing loop
-with a tensorized zigzag/snake layout. This reimplementation keeps the public
-DeepSeek-style group distribution and overloaded-expert replication, then uses
-the tensor snake only for physical-replica placement. The evolved method in
-`method/` reuses the same zigzag idea across more EPLB stages.
+Baseline ``frontier_reference_zigzag`` and the anchor every speedup is measured
+against.  The paper's frontier-lab implementation is non-public; it is described
+as replacing the loop-based greedy bin packing of replicas onto GPUs with a
+tensorised zigzag ("snake") layout that interleaves heavily and lightly loaded
+replicas across GPU slots (540 ms -> 19.6 ms, same imbalance factor).
+
+Reconstruction: the paper's initial program (DeepSeek/vLLM EPLB) unchanged,
+except that stage 3 (pack physical replicas onto the GPUs of each node) uses
+``snake_packing`` below instead of the Python-loop ``balanced_packing``.
+Stage 1 (pack expert groups onto nodes) keeps the loop-based greedy packing
+and stage 2 keeps the overloaded-expert replication loop.
 """
-
-from __future__ import annotations
-
-import argparse
-import sys
-import time
-from pathlib import Path
+# EVOLVE-BLOCK-START
 
 import torch
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "data"))
-sys.path.insert(0, str(ROOT / "baseline"))
 
-from eplb_baseline import greedy_pack, replicate_experts
-from eplb_common import load_traces, write_json
+def balanced_packing(weight: torch.Tensor,
+                     num_packs: int) -> tuple[torch.Tensor, torch.Tensor]:
+    """
+    Pack n weighted objects to m packs, such that each bin contains exactly
+    n/m objects and the weights of all packs are as balanced as possible.
+
+    Parameters:
+        weight: [X, n], the weight of each item
+        num_packs: number of packs
+
+    Returns:
+        pack_index: [X, n], the pack index of each item
+        rank_in_pack: [X, n], the rank of the item in the pack
+    """
+    num_layers, num_groups = weight.shape
+    assert num_groups % num_packs == 0
+    groups_per_pack = num_groups // num_packs
+
+    if groups_per_pack == 1:
+        pack_index = torch.arange(weight.size(-1),
+                                  dtype=torch.int64,
+                                  device=weight.device).expand(weight.shape)
+        rank_in_pack = torch.zeros_like(weight, dtype=torch.int64)
+        return pack_index, rank_in_pack
+
+    indices = weight.float().sort(-1, descending=True).indices.cpu()
+    pack_index = torch.full_like(weight,
+                                 fill_value=-1,
+                                 dtype=torch.int64,
+                                 device="cpu")
+    rank_in_pack = torch.full_like(pack_index, fill_value=-1)
+    for i in range(num_layers):
+        pack_weights = [0] * num_packs
+        pack_items = [0] * num_packs
+        for group in indices[i]:
+            pack = min(
+                (i
+                 for i in range(num_packs) if pack_items[i] < groups_per_pack),
+                key=pack_weights.__getitem__,
+            )
+            assert pack_items[pack] < groups_per_pack
+            pack_index[i, group] = pack
+            rank_in_pack[i, group] = pack_items[pack]
+            pack_weights[pack] += weight[i, group]
+            pack_items[pack] += 1
+    return pack_index, rank_in_pack
 
 
-def tensor_snake_order(weights: torch.Tensor, num_packs: int, capacity: int) -> tuple[list[int], int]:
-    if weights.numel() != num_packs * capacity:
-        raise ValueError("snake packing expects exactly num_packs * capacity items")
-    sorted_idx = torch.argsort(weights, descending=True, stable=True)
-    positions = torch.arange(weights.numel(), device=weights.device)
-    block_id = positions // num_packs
-    idx_in_block = positions % num_packs
-    pack_for_sorted = torch.where(
-        block_id.remainder(2).eq(0),
-        idx_in_block,
-        num_packs - 1 - idx_in_block,
+def snake_packing(weight: torch.Tensor,
+                  num_packs: int) -> tuple[torch.Tensor, torch.Tensor]:
+    """
+    Tensorised zigzag packing with the same contract as `balanced_packing`.
+
+    Items are sorted once by weight; the k-th heaviest item goes to pack
+    k % num_packs in even blocks of num_packs items and to the mirrored pack
+    in odd blocks, so heavy and light items alternate across packs.  No Python
+    loop over layers or items.
+    """
+    num_layers, num_items = weight.shape
+    assert num_items % num_packs == 0
+    order = weight.float().argsort(dim=-1, descending=True, stable=True)
+    ranks = torch.arange(num_items, dtype=torch.int64, device=weight.device)
+    block = ranks // num_packs
+    lane = ranks % num_packs
+    pack_of_rank = torch.where(block % 2 == 0, lane, num_packs - 1 - lane)
+    pack_index = torch.empty_like(order)
+    pack_index.scatter_(-1, order, pack_of_rank.expand(num_layers, -1))
+    rank_in_pack = torch.empty_like(order)
+    rank_in_pack.scatter_(-1, order, block.expand(num_layers, -1))
+    return pack_index, rank_in_pack
+
+
+def replicate_experts(
+        weight: torch.Tensor,
+        num_phy: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """
+    Replicate `num_log` experts to `num_phy` replicas, such that the maximum
+    load of all replicas is minimized.
+
+    Parameters:
+        weight: [X, num_log]
+        num_phy: total number of experts after replication
+
+    Returns:
+        phy2log: [X, num_phy], logical expert id of each physical expert
+        rank: [X, num_phy], the replica rank
+        logcnt: [X, num_log], number of replicas for each logical expert
+    """
+    n, num_log = weight.shape
+    num_redundant = num_phy - num_log
+    assert num_redundant >= 0
+    device = weight.device
+    phy2log = torch.arange(num_phy, dtype=torch.int64,
+                           device=device).repeat(n, 1)
+    rank = torch.zeros(n, num_phy, dtype=torch.int64, device=device)
+    logcnt = torch.ones(n, num_log, dtype=torch.int64, device=device)
+    arangen = torch.arange(n, dtype=torch.int64, device=device)
+    for i in range(num_log, num_phy):
+        redundant_indices = (weight / logcnt).max(dim=-1).indices
+        phy2log[:, i] = redundant_indices
+        rank[:, i] = logcnt[arangen, redundant_indices]
+        logcnt[arangen, redundant_indices] += 1
+    return phy2log, rank, logcnt
+
+
+def rebalance_experts_hierarchical(
+    weight: torch.Tensor,
+    num_physical_experts: int,
+    num_groups: int,
+    num_nodes: int,
+    num_gpus: int,
+):
+    """
+    Parameters:
+        weight: [num_moe_layers, num_logical_experts]
+        num_physical_experts: number of physical experts after replication
+        num_groups: number of expert groups
+        num_nodes: number of server nodes, where the intra-node network
+        (e.g, NVLink) is faster
+        num_gpus: number of GPUs, must be a multiple of `num_nodes`
+
+    Returns:
+        physical_to_logical_map: [num_moe_layers, num_physical_experts]
+        logical_to_physical_map: [num_moe_layers, num_logical_experts, X]
+        logical_count: [num_moe_layers, num_logical_experts]
+    """
+    num_layers, num_logical_experts = weight.shape
+    assert num_logical_experts % num_groups == 0
+    group_size = num_logical_experts // num_groups
+    assert num_groups % num_nodes == 0
+    groups_per_node = num_groups // num_nodes
+    assert num_gpus % num_nodes == 0
+    assert num_physical_experts % num_gpus == 0
+    phy_experts_per_gpu = num_physical_experts // num_gpus
+
+    def inverse(perm: torch.Tensor) -> torch.Tensor:
+        inv = torch.empty_like(perm)
+        inv.scatter_(
+            1,
+            perm,
+            torch.arange(perm.size(1), dtype=torch.int64,
+                         device=perm.device).expand(perm.shape),
+        )
+        return inv
+
+    # Step 1: pack groups to nodes
+    tokens_per_group = weight.unflatten(-1, (num_groups, group_size)).sum(-1)
+    group_pack_index, group_rank_in_pack = balanced_packing(
+        tokens_per_group, num_nodes)
+    log2mlog = (((group_pack_index * groups_per_node + group_rank_in_pack) *
+                 group_size).unsqueeze(-1) +
+                torch.arange(group_size,
+                             dtype=torch.int64,
+                             device=group_pack_index.device)).flatten(-2)
+    mlog2log = inverse(log2mlog)
+
+    # Step 2: construct redundant experts within nodes
+    # [num_layers * num_nodes, num_logical_experts // num_nodes]
+    tokens_per_mlog = weight.gather(-1, mlog2log).view(
+        -1, num_logical_experts // num_nodes)
+    phy2mlog, phyrank, mlogcnt = replicate_experts(
+        tokens_per_mlog, num_physical_experts // num_nodes)
+
+    # Step 3: pack physical_experts to GPUs
+    # [num_layers * num_nodes, num_physical_experts // num_nodes]
+    tokens_per_phy = (tokens_per_mlog / mlogcnt).gather(-1, phy2mlog)
+    pack_index, rank_in_pack = snake_packing(tokens_per_phy,
+                                             num_gpus // num_nodes)
+    phy2pphy = pack_index * phy_experts_per_gpu + rank_in_pack
+    pphy2phy = inverse(phy2pphy)
+
+    pphy2mlog = phy2mlog.gather(
+        -1, pphy2phy)  # [num_layers * num_nodes, num_log_per_nodes]
+    pphy2mlog = (pphy2mlog.view(num_layers, num_nodes, -1) + torch.arange(
+        0,
+        num_logical_experts,
+        num_logical_experts // num_nodes,
+        device=group_pack_index.device,
+    ).view(1, -1, 1)).flatten(-2)
+    pphy2log = mlog2log.gather(-1, pphy2mlog)
+    pphyrank = phyrank.gather(-1, pphy2phy).view(num_layers, -1)
+    logcnt = mlogcnt.view(num_layers, -1).gather(-1, log2mlog)
+    return pphy2log, pphyrank, logcnt
+
+
+def rebalance_experts(
+    weight: torch.Tensor,
+    num_replicas: int,
+    num_groups: int,
+    num_nodes: int,
+    num_gpus: int,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """
+    Entry point for expert-parallelism load balancer.
+
+    Parameters:
+        weight: [layers, num_logical_experts], the load statistics for all
+            logical experts
+        num_replicas: number of physical experts, must be a multiple of
+            `num_gpus`
+        num_groups: number of expert groups
+        num_nodes: number of server nodes, where the intra-node network
+            (e.g, NVLink) is faster
+        num_gpus: number of GPUs, must be a multiple of `num_nodes`
+
+    Returns:
+        physical_to_logical_map: [layers, num_replicas], the expert index of
+            each replica
+        logical_to_physical_map: [layers, num_logical_experts, X], the replica
+            indices for each expert
+        expert_count: [layers, num_logical_experts], number of physical
+            replicas for each logical expert
+    """
+    num_layers, num_logical_experts = weight.shape
+    weight = weight.float().cpu()
+    if num_groups % num_nodes == 0:
+        # use hierarchical load-balance policy
+        phy2log, phyrank, logcnt = rebalance_experts_hierarchical(
+            weight, num_replicas, num_groups, num_nodes, num_gpus)
+    else:
+        # use global load-balance policy
+        phy2log, phyrank, logcnt = rebalance_experts_hierarchical(
+            weight, num_replicas, 1, 1, num_gpus)
+    num_redundant_experts = num_replicas - num_logical_experts
+    maxlogcnt = num_redundant_experts + 1
+    log2phy: torch.Tensor = torch.full(
+        (num_layers, num_logical_experts, maxlogcnt),
+        -1,
+        dtype=torch.int64,
+        device=logcnt.device,
     )
-    pack_matrix = torch.empty((num_packs, capacity), dtype=torch.long, device=weights.device)
-    pack_matrix[pack_for_sorted, block_id] = sorted_idx
-    return [int(x) for x in pack_matrix.reshape(-1).tolist()], 8
-
-
-def run_trace(trace: dict) -> dict:
-    start = time.perf_counter()
-    loads = [float(x) for x in trace["loads"]]
-    num_groups = int(trace["num_groups"])
-    num_nodes = int(trace["num_nodes"])
-    num_gpus = int(trace["num_gpus"])
-    num_replicas = int(trace["num_replicas"])
-    group_size = len(loads) // num_groups
-
-    group_loads = [
-        sum(loads[group_id * group_size : (group_id + 1) * group_size])
-        for group_id in range(num_groups)
-    ]
-    _, group_ops = greedy_pack(group_loads, num_nodes, num_groups // num_nodes)
-
-    replica_counts, replica_ops = replicate_experts(loads, num_replicas)
-    physical_to_logical: list[int] = []
-    replica_loads: list[float] = []
-    for expert_id, count in enumerate(replica_counts):
-        physical_to_logical.extend([expert_id] * count)
-        replica_loads.extend([loads[expert_id] / count] * count)
-
-    order, placement_ops = tensor_snake_order(
-        torch.tensor(replica_loads, dtype=torch.float32),
-        num_gpus,
-        num_replicas // num_gpus,
+    log2phy.view(num_layers, -1).scatter_(
+        -1,
+        phy2log * maxlogcnt + phyrank,
+        torch.arange(num_replicas, dtype=torch.int64,
+                     device=log2phy.device).expand(num_layers, -1),
     )
-    packed = [physical_to_logical[idx] for idx in order]
-    elapsed_ms = (time.perf_counter() - start) * 1000.0
-    return {
-        "trace_id": trace["id"],
-        "replica_counts": replica_counts,
-        "physical_to_logical": packed,
-        "operation_count": group_ops + replica_ops + placement_ops,
-        "rebalance_time_ms": elapsed_ms,
-    }
+    return phy2log, log2phy, logcnt
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--traces", default="data/eplb_traces.json")
-    parser.add_argument("--output", default="outputs/eplb/frontier_reference_zigzag.json")
-    args = parser.parse_args()
+# EVOLVE-BLOCK-END
 
-    traces = load_traces(args.traces)["traces"]
-    outputs = [run_trace(trace) for trace in traces]
-    write_json(args.output, {"method": "frontier_reference_zigzag", "outputs": outputs})
+__all__ = ["rebalance_experts"]
 
-
-if __name__ == "__main__":
-    main()

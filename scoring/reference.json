@@ -1,104 +1,80 @@
 {
   "experiments": {
     "eplb_moe_placement": {
-      "description": "MoE expert-parallel load balancing: reduce rebalance work while preserving GPU load balance.",
+      "description": "MoE expert-parallel load balancing on the paper's ShareGPT/GSM8K expert-load trace (288 replicas, 8 expert groups, 4 nodes, 32 GPUs): rebalance on each 100-step window, keep GPU load balanced on the next window, and do it with less rebalance work than the frontier-lab reference.",
       "weight": 1.0,
-      "primary_metric": "work_efficiency_vs_frontier_reference",
+      "primary_metric": "speedup_vs_frontier_reference",
+      "_scale_note": "Paper values are kept as reported. The paper measures wall-clock rebalance time (540 / 19.6 / 3.7 ms); the gym measures deterministic rebalance work units with a fixed cost model and reports speedup = anchor work / method work, so the measured speedup is the same quantity on a hardware-independent scale and need not equal 5.3. Balancedness is the paper's imbalance factor (mean GPU load / max GPU load on the next window), on the paper's scale (0.66). Each scored rebalance covers 29 MoE layers (the paper's 58 layers split into visible and held-out halves).",
       "metrics": {
-        "work_efficiency_vs_greedy": {
-          "higher_is_better": true,
-          "coefficient": 0.0,
-          "description": "Candidate balance-adjusted operation-count efficiency relative to the public greedy DeepSeek-style baseline; reported for context but not scored."
-        },
-        "work_efficiency_vs_frontier_reference": {
+        "speedup_vs_frontier_reference": {
           "higher_is_better": true,
           "coefficient": 1.0,
-          "description": "Primary machine-independent operation-count efficiency against the stronger reference baseline, adjusted by measured GPU load balance on the scored slice."
+          "description": "Mean rebalance work of the frozen frontier-reference policy divided by the method's mean rebalance work, both measured by the evaluator on the same windows. 0 if the run failed (invalid placement, guard violation, non-determinism, work cap, or balance constraint)."
         },
-        "mean_imbalance_factor": {
+        "balancedness": {
           "higher_is_better": true,
-          "coefficient": 0.5,
-          "description": "Mean GPU load balance ratio across traces; preserves the paper's no-worse-load-balance constraint."
+          "coefficient": 1.0,
+          "description": "Paper's imbalance factor on the next window: sum over layers of mean GPU load divided by sum over layers of max GPU load, averaged over all rebalances. Must stay within 0.005 of the frontier reference or the run fails. 0 if the run failed."
+        },
+        "mean_rebalance_cost": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "Unscored diagnostic: mean measured work units per rebalance (bytecodes, C calls and their argument sizes, PyTorch kernels and the elements they touch)."
+        },
+        "balance_change_vs_frontier_reference": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Unscored diagnostic: measured balancedness minus the frontier reference's on the same windows (shown even for failed runs)."
+        },
+        "worst_window_balancedness": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Unscored diagnostic: lowest per-rebalance balancedness."
         },
         "valid_fraction": {
           "higher_is_better": true,
-          "coefficient": 0.35,
-          "description": "Fraction of slice traces with structurally valid placement artifacts."
+          "coefficient": 0.0,
+          "description": "Unscored diagnostic: fraction of rebalances that returned a valid placement before the run stopped."
+        },
+        "run_failed": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "Unscored diagnostic: 1 if the run failed (reason recorded under _failures in the score file)."
+        },
+        "diagnostic_cpu_ms_per_rebalance": {
+          "higher_is_better": false,
+          "coefficient": 0.0,
+          "description": "Unscored, host-dependent: CPU time of an unmetered replay, kept only to cross-check the work measure."
+        },
+        "num_rebalances": {
+          "higher_is_better": true,
+          "coefficient": 0.0,
+          "description": "Unscored: number of rebalance calls scored per method."
         },
         "reported_runtime_ms": {
           "higher_is_better": false,
           "coefficient": 0.0,
-          "description": "Paper-reported wall-clock runtime kept only to validate legacy reference-result keys; not emitted by split evaluators and not scored."
-        },
-        "mean_operation_count": {
-          "higher_is_better": false,
-          "coefficient": -0.2,
-          "description": "Mean machine-independent rebalance work; penalizes improvements that only win by increasing counted work."
-        },
-        "num_traces": {
-          "higher_is_better": true,
-          "coefficient": 0.0,
-          "description": "Number of traces scored in this slice; emitted for auditability and not scored."
-        },
-        "complete_fraction": {
-          "higher_is_better": true,
-          "coefficient": 0.4,
-          "description": "Fraction of required slice traces for which the method emitted a placement artifact; catches methods that skip difficult traces."
-        },
-        "family_imbalance_floor": {
-          "higher_is_better": true,
-          "coefficient": 0.25,
-          "description": "Worst family-level mean load balance; catches methods tuned to one workload family while regressing on another."
-        },
-        "family_imbalance_spread": {
-          "higher_is_better": false,
-          "coefficient": -0.15,
-          "description": "Gap between best and worst family-level mean load balance; penalizes uneven behavior across workload families."
-        },
-        "high_skew_mean_imbalance_factor": {
-          "higher_is_better": true,
-          "coefficient": 0.25,
-          "description": "Mean load balance on the higher-skew half of the slice; catches methods that only handle easy load distributions."
-        },
-        "high_skew_mean_operation_count": {
-          "higher_is_better": false,
-          "coefficient": -0.1,
-          "description": "Mean counted rebalance work on higher-skew traces; catches hidden work blowups on difficult load distributions."
-        },
-        "min_imbalance_factor": {
-          "higher_is_better": true,
-          "coefficient": 0.3,
-          "description": "Worst per-trace GPU load balance ratio on the slice; catches methods that keep the mean balanced while sacrificing hard cases."
-        },
-        "p95_operation_count": {
-          "higher_is_better": false,
-          "coefficient": -0.15,
-          "description": "High-percentile rebalance work across traces; catches methods that hide rare expensive placements behind a good mean."
+          "description": "Paper-reported wall-clock rebalance time, kept for context only; not emitted or scored."
         }
       },
       "results": {
         "greedy_deepseek": {
           "type": "baseline",
-          "mean_imbalance_factor": 0.66,
-          "valid_fraction": 1.0,
+          "balancedness": 0.66,
           "reported_runtime_ms": 540.0,
-          "num_traces": 1.0
+          "speedup_vs_frontier_reference": 0.03629629629629629
         },
         "frontier_reference_zigzag": {
           "type": "baseline",
-          "work_efficiency_vs_frontier_reference": 1.0,
-          "mean_imbalance_factor": 0.66,
-          "valid_fraction": 1.0,
+          "balancedness": 0.66,
           "reported_runtime_ms": 19.6,
-          "num_traces": 1.0
+          "speedup_vs_frontier_reference": 1.0
         },
         "evolved_zigzag": {
           "type": "proposed",
-          "work_efficiency_vs_frontier_reference": 5.297297297297297,
-          "mean_imbalance_factor": 0.66,
-          "valid_fraction": 1.0,
+          "balancedness": 0.66,
           "reported_runtime_ms": 3.7,
-          "num_traces": 1.0
+          "speedup_vs_frontier_reference": 5.297297297297297
         }
       }
     }

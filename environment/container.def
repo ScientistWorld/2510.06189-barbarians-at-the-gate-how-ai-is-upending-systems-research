@@ -16,9 +16,9 @@
 # Only OS-level packages (apt-get) belong in %post.
 # Putting pip install in %post is the #1 cause of build failures.
 
-# --- CPU-only base (default) ---
+# --- CPU-only base (Python 3.12: the work meter uses sys.monitoring) ---
 Bootstrap: docker
-From: python:3.11-slim
+From: python:3.12-slim
 
 # --- GPU / CUDA base (uncomment if your paper needs GPU) ---
 # Bootstrap: docker

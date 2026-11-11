@@ -2,4 +2,9 @@
 
 ## eplb_moe_placement
 
-Tests the central MoE serving question from the paper: whether a policy can adapt expert replica placement to changing expert-load traces with less rebalance work while still producing balanced, valid GPU assignments. The experiment compares candidate placement artifacts on the same deterministic workload set and reports both benefit and constraint metrics.
+Establishes whether an expert-parallel load balancer for MoE inference can rebalance with less computation without losing GPU load balance. The setting is the expert-load trace of a real MoE serving run (ShareGPT and GSM8K traffic), rebalanced every 100 steps on a hierarchical cluster (288 expert slots, 4 nodes, 32 GPUs, expert groups kept within one node).
+
+- Benefit: how much less rebalance work a policy needs than a fixed frontier-lab reference policy. The evaluator measures the work while running the policy on the same windows (`speedup_vs_frontier_reference`).
+- Constraint: GPU load balance on the window after each rebalance, which the policy has not seen (`balancedness`). It must not fall below the reference's. Every placement must also be valid: exact replica budget, every expert deployed, consistent maps, groups kept whole on equally loaded nodes. Any failure scores the run as failed.
+
+The hidden test uses MoE layers of the same trace that are never visible, with a secret relabelling of expert ids. A policy must therefore work on load distributions it has not seen. It is never scored on the window it was given.
