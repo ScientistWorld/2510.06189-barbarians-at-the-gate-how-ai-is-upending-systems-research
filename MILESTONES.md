@@ -32,3 +32,8 @@
 - Final verification passed `python validate.py --compare`; eval/method separation, shared-path checks, and train/test wiring are valid.
 - Sanitized method-agnostic evaluation documentation so from-scratch agents see the task and scoring contract without solution details.
 - Kept milestone at `core_claim` because the core EPLB claim is supported on deterministic synthetic traces, with the exact paper traces and non-public implementation still unavailable.
+
+### [2026-11-11] - core_claim (hardening, iteration 11)
+- Rebuilt the gym on the paper's released expert-load trace and evaluator protocol (288 replicas, 8 groups, 4 nodes, 32 GPUs, 100-step windows, scored on the next window); greedy and frontier reach the paper's 0.66 balance.
+- Methods are policy files run by the evaluator; the hidden test streams held-out, relabelled layers one window at a time and measures rebalance work itself (calibrated to CPU time, deterministic).
+- Reference `evolved_zigzag`: 2.79x less work than the frozen frontier reference with identical balance (0.6583 test / 0.6674 train); honest leaner variants score higher (3.87x, 4.14x); weaker, simple and brute-force variants and all audited shortcuts score lower or tie. Details in `HARDENING.md`.

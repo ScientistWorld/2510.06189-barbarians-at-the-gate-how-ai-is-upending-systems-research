@@ -1,3 +1,5 @@
+> Superseded: the gym was rebuilt in iteration 11 (real trace, executed policies, measured work). See `HARDENING.md` for the current verification.
+
 # Verification Report
 
 ## Initial Assessment

@@ -3,17 +3,21 @@
 - **Paper ID:** 2510.06189
 - **Title:** Barbarians at the Gate: How AI is Upending Systems Research
 - **Domain:** Systems / AI-driven algorithm discovery
-- **TL;DR:** The paper shows that LLM-driven evolutionary coding can discover strong systems algorithms when candidates are scored by reliable simulators.
+- **TL;DR:** LLM-driven evolutionary coding (ADRS) can discover strong systems algorithms when candidates are scored by reliable simulators.
 
 ## Short Summary
 
-The paper proposes AI-Driven Research for Systems (ADRS), a generate-evaluate-refine loop for systems performance problems. It studies several case studies using OpenEvolve, including deadline scheduling, MoE expert placement, LLM-SQL layout optimization, and transaction scheduling. This reproduction packages the MoE expert-placement case study because it has a compact public baseline and a clearly described evolved heuristic.
+The paper proposes AI-Driven Research for Systems (ADRS), a generate-evaluate-refine loop for systems performance problems, and presents several case studies run with OpenEvolve. This gym packages the MoE Expert Parallelism Load Balancing (EPLB) case study on the paper's own released expert-load trace (DeepSeek-style 58-layer, 256-expert model; 288 replicas, 8 groups, 4 nodes, 32 GPUs). Each rebalance is judged on the next 100-step window, exactly as in the paper's evaluator.
 
-## Key Results
+## Key Results (paper)
 
-- Paper reports the evolved EPLB algorithm matching baseline imbalance factor while reducing rebalance runtime from 19.6 ms to 3.7 ms versus a non-public reference.
-- The initial public DeepSeek-style greedy EPLB policy is reported at about 540 ms with imbalance factor 0.66.
-- The reproduced environment scores the same trade-off with valid placement, imbalance, and machine-independent operation counts.
+- Greedy initial program (public DeepSeek/vLLM EPLB): ~540 ms per rebalance, imbalance factor 0.66.
+- Frontier-lab reference (non-public, tensorised zigzag): 19.6 ms, same imbalance factor.
+- Evolved policy: 3.7 ms (5.3x faster than the reference), same imbalance factor.
+
+## Reproduced Here
+
+The evaluator runs each policy itself and measures its rebalance work deterministically (no wall-clock). The reproduced evolved policy keeps the reference's next-window balance and needs several times less work than the frontier reference. The greedy initial program needs tens of times more. See `HARDENING.md` for the measured numbers.
 
 ---
 
@@ -21,15 +25,28 @@ The paper proposes AI-Driven Research for Systems (ADRS), a generate-evaluate-re
 
 ## Research Question
 
-Can automated algorithm discovery improve small, performance-critical systems algorithms when a reliable simulator can score correctness and performance? This reproduction focuses on the MoE expert-parallel load-balancing task: given changing per-expert token loads, a fixed number of logical experts, physical expert replicas, nodes, and GPUs, produce a replica count and GPU placement that balances generated-token load across GPUs.
+Can a rebalancing algorithm for Mixture-of-Experts (MoE) expert-parallel inference do less work per rebalance while keeping GPU load just as balanced? This gym poses the Expert Parallelism Load Balancing (EPLB) problem from the paper's MoE case study, on the paper's own expert-load trace.
+
+Every 100 inference steps the serving system hands the balancer the per-expert token load of the window that just ended, for every MoE layer. The balancer must return, for each layer:
+
+- how many physical replicas each logical expert gets (exactly `num_replicas` slots, every expert at least one), and
+- which physical slot (and therefore which GPU and node) holds each replica.
+
+The cluster is hierarchical: 256 logical experts in 8 expert groups, 288 physical slots, 4 nodes with 8 GPUs each (9 slots per GPU). Each expert group must live entirely on one node, and every node hosts the same number of groups. The placement is then used for the next 100 steps, so it is judged on the next window's load, which the balancer has not seen.
 
 ## Why It Matters
 
-Mixture-of-Experts inference can become bottlenecked when popular experts concentrate on a subset of GPUs. A good load balancer lets serving systems adapt to workload shifts while keeping reconfiguration overhead small.
+When popular experts pile up on a few GPUs, the slowest GPU sets the latency of every MoE layer. Expert loads drift with the workload (prefill bursts, finishing requests, dataset changes), so placements must be recomputed often. The rebalancing computation runs inside the serving system; a slow balancer either delays rebalancing or burns serving time.
 
 ## Success Criteria
 
-A successful solution produces valid placements for all traces, maintains high average/max GPU load balance, and reduces the amount of work needed to rebalance experts when loads change.
+A good balancer:
+
+- returns a valid placement for every layer of every window,
+- keeps next-window GPU balance (mean GPU load / max GPU load) at least as good as the frontier-lab reference policy, and
+- needs less rebalance work than that reference.
+
+Better next-window balance (for example by anticipating load drift) is also a genuine improvement, as long as validity holds.
 
 ---
 
@@ -37,38 +54,105 @@ A successful solution produces valid placements for all traces, maintains high a
 
 ## Key Contribution
 
-The paper argues for AI-Driven Research for Systems (ADRS): use LLM-driven iterative code generation plus reliable simulators to discover systems algorithms. The reproduced case study is Expert Parallelism Load Balancing (EPLB) for MoE inference.
+The paper argues for AI-Driven Research for Systems (ADRS): an LLM-driven evolutionary loop (OpenEvolve) proposes code, and a reliable simulator scores it. In the Expert Parallelism Load Balancer (EPLB) case study (Section 5.2), the loop starts from the public DeepSeek/vLLM EPLB program. It discovers a rebalancing algorithm that matches the baselines' imbalance factor (0.66) while cutting rebalance time from 19.6 ms (a non-public frontier-lab reference) to 3.7 ms. The public greedy initial program takes 540 ms.
 
-## Approach
+## The Three Policies Shipped Here
 
-For EPLB, the algorithmic pipeline has three stages: distribute expert groups across nodes, create replicas for overloaded experts, and assign physical replicas to GPUs. The initial program uses greedy bin packing. The evolved policy keeps the overloaded-expert replication idea but replaces loop-heavy placement with a PyTorch tensorized snake/zigzag assignment that sorts replicas and alternates pack direction across blocks. This reproduction makes the group-to-node zigzag order feed into physical replica materialization, then applies the same tensorized placement at the GPU stage. The paper emphasizes that applying this zigzag partitioning across multiple EPLB stages was the key improvement.
+All three implement `rebalance_experts` with the same three-stage hierarchical structure:
+1. pack expert groups onto nodes,
+2. replicate the most overloaded experts within each node,
+3. pack physical replicas onto the GPUs of each node.
 
-## Main Claims
+- `baseline/eplb_greedy_deepseek.py` (`greedy_deepseek`): the paper's initial program, copied verbatim from the released case study. Both packing stages use Python-loop greedy bin packing (sort, then put each item into the least-loaded non-full pack).
+- `baseline/eplb_frontier_reference.py` (`frontier_reference_zigzag`): reconstruction of the frontier-lab reference. The paper describes it as replacing the loop-based packing of replicas onto GPUs with a tensorised zigzag ("snake") layout that interleaves heavy and light replicas across GPUs, with the same imbalance factor. Here stage 3 uses the tensorised zigzag; stage 1 keeps the greedy loop and stage 2 the replication loop. The hidden test measures every speedup against a frozen copy of this file in `eval/`.
+- `method/eplb_evolved.py` (`evolved_zigzag`): the reproduced evolved policy. Following Figure 5b, it sorts once, then within even blocks of `num_packs` items assigns packs in order and within odd blocks in reverse (`torch.where`). This happens without any Python loop, batched over all layers. As the paper reports for the breakthrough, the zigzag partitioning is reused in both packing stages, not just one. The replication stage keeps the rule of repeatedly replicating the currently most overloaded expert ("replicating only overloaded experts prevailed").
 
-- Primary: ADRS can discover a faster EPLB rebalancing algorithm without worsening load balance.
-- Reproduced target: the evolved zigzag placement reduces rebalance work relative to greedy while keeping valid, similarly balanced placements.
-- Secondary paper-level claim: reliable evaluators make systems algorithm discovery especially suitable for AI-driven search.
+The paper's evolved code is not released, and its unspecified "subtle enhancements" (ordering logic, adaptive reshaping) are not reproduced. The shipped method is exactly the described change: zigzag in both stages, batched over layers.
+
+## Main Claims Tested
+
+- Primary: the evolved policy needs much less rebalance work than the frontier reference (speedup > 1).
+- Constraint: next-window GPU balance stays the same as the frontier reference (and the greedy initial program), at the paper's 0.66 level.
 
 ---
 
 # Evaluation
 
+## Data
+
+The workload is the expert-load trace released with the paper's EPLB case study (Hugging Face `abmfy/eplb-openevolve`, `expert-load.json`): 1174 recorded steps of a 58-layer, 256-expert MoE model serving ShareGPT and GSM8K requests. Consecutive steps are summed into 100-step windows, as in the paper's evaluator. Windows start at four offsets (0, 25, 50, 75 steps), giving four sequences of 11-12 windows and 43 rebalances per method.
+
+- Visible (train): the 29 even MoE layers, in `data/eplb_train_windows.json` (expert ids relabelled within groups; `scripts/download.sh` rebuilds it).
+- Hidden (test): the 29 held-out layers, relabelled with a secret permutation, used only by the hidden test. Do not fetch the raw trace to read them.
+
+## Submission Interface
+
+A method is one self-contained Python file `outputs/eplb/<method_name>.py` defining the paper's (vLLM's) interface:
+
+```python
+rebalance_experts(weight, num_replicas, num_groups, num_nodes, num_gpus)
+    -> (phy2log, log2phy, logcnt)
+```
+
+- `weight`: int64 tensor `[num_layers, 256]`, the load of the window that just ended.
+- `phy2log`: `[num_layers, 288]`, logical expert held by each physical slot (slot `p` is on GPU `p // 9`, node `p // 72`).
+- `log2phy`: `[num_layers, 256, X]`, the slots of each expert in its first `logcnt` entries, `-1` after that (any `X` >= the largest replica count).
+- `logcnt`: `[num_layers, 256]`, replicas per expert.
+
+Every policy file in `outputs/eplb/` is evaluated; the method name is the file name. The evaluator calls the policy once per window, in order, on a fresh module for each sequence. Module-level state may carry across the calls of one sequence.
+
+Policy rules:
+- Self-contained, at most 64 KB. It may import only `torch` and the computational standard library (no numpy, threads, processes, files, sockets, ctypes, `sys`, `os`, `gc`, `importlib`, ...).
+- Deterministic: the same inputs give the same outputs.
+- No TorchScript/`torch.compile`, no native extensions, and no tampering with the evaluator or its measurement.
+
+Violations are detected and fail the run.
+
+## Validity
+
+Each returned placement must satisfy all of the following, or the whole run fails:
+- tensors of the exact shapes above, integer dtype;
+- every logical expert has at least one replica; replicas fill exactly 288 slots; `logcnt` matches `phy2log`;
+- `log2phy` lists exactly each expert's slots, padded with `-1`;
+- each expert group sits entirely on one node, and every node hosts exactly 2 groups.
+
 ## Metrics
 
-- `mean_imbalance_factor`: average over traces of `(mean GPU load) / (max GPU load)`. Higher is better; 1.0 is perfectly balanced.
-- `work_efficiency_vs_greedy`: lightweight reference mean operation count divided by candidate mean operation count. Higher is better. This replaces wall-clock runtime with a machine-independent work proxy.
-- `work_efficiency_vs_frontier_reference`: stronger benchmark-reference mean operation count divided by candidate mean operation count, multiplied by the candidate's measured balance. Higher is better and is the primary metric because the target problem is to reduce rebalance work without losing placement quality.
-- `mean_operation_count`: counted algorithmic operations for group packing, replication, and placement. Lower is better.
-- `valid_fraction`: fraction of required traces whose placement has the requested number of replicas, valid expert ids, and positive replica count for every logical expert. Higher is better.
-- `complete_fraction`: fraction of required traces for which a method emits an artifact. Higher is better.
+Scored (equal coefficients):
+- `speedup_vs_frontier_reference` (primary, higher is better): the frozen frontier-lab reference policy's mean rebalance work divided by the method's mean rebalance work, measured on the same windows.
+- `balancedness` (higher is better): the paper's imbalance factor on the next window, `sum over layers of mean GPU load / sum over layers of max GPU load`, averaged over all rebalances.
 
-## Baselines and Targets
+Constraint: a method whose balancedness is more than 0.005 below the frontier reference on the same windows fails the run.
 
-Reference artifacts provide two fixed comparison anchors: one lightweight anchor for basic sanity checking and one stronger anchor for the primary score. Published wall-clock values are kept only as unscored context in `reported_runtime_ms`; the scored work metrics use operation-count ratios from the reproducible benchmark because wall-clock runtime is hardware-dependent.
+Unscored diagnostics: `mean_rebalance_cost`, `balance_change_vs_frontier_reference`, `worst_window_balancedness`, `valid_fraction`, `run_failed`, `num_rebalances`, and `diagnostic_cpu_ms_per_rebalance` (host CPU time of an unmetered replay, only a cross-check).
 
-## Evaluation Protocol
+## Rebalance Work Measure
 
-Run `bash scripts/reproduce.sh` to generate deterministic expert-load traces, produce placement artifacts, and write `scoring/scores.json`. Standalone evaluation is `bash scripts/evaluate.sh`; it reads placement artifacts from `outputs/eplb/` and does not import from any candidate method implementation.
+The evaluator runs the policy in a sandboxed process and counts the work of each `rebalance_experts` call itself. Self-reported numbers are ignored. One work unit is roughly one interpreted Python bytecode (about 14 ns on the calibration host):
+
+| event | units |
+|---|---|
+| Python bytecode instruction executed (any code run by the call) | 1 |
+| call from Python into a C function | 1 |
+| element of a Python container scanned by such a call (`sorted`, `sum`, `max`, `list(...)`, `torch.tensor(list)`, `.tolist()`, `list.index`, ...; sorts pay `n log2 n`, heap/bisect ops `log2 n`) | 2 |
+| PyTorch kernel dispatched | 20 |
+| tensor element read or written by a non-view kernel (sort-like kernels times `log2` of the sorted length) | 0.06 |
+
+The weights were calibrated once against unmetered CPU time of greedy-loop, tensorised, pure-Python and search-heavy policies on the job host. Work units track CPU time within about 2x across these very different implementation styles, and they rank those policies in the same order as CPU time.
+
+Work done at import time is not counted, but it cannot depend on the windows. A single rebalance above 5e8 units fails the run. Wall-clock time is never scored.
+
+## Failure Handling
+
+Any failure gives the method the worst value in every scored metric (0 and 0), with the reason under `_failures` in the score file. Failures include: a load error, an exception, an invalid placement, a guard violation, non-determinism, exceeding the work cap, or the balance constraint. Missing or malformed files never leave stale scores behind.
+
+## Commands
+
+- `bash scripts/evaluate_train.sh` (or `scripts/evaluate.sh`): score every policy in `outputs/eplb/` on the visible windows, written to `scoring/scores_train.json` (or `scores.json`).
+- `bash scripts/evaluate_test.sh`: the hidden test, with the same interface on held-out windows, written to `scoring/scores_test.json`.
+- `bash scripts/reproduce.sh`: publish the shipped baselines and method, then run both evaluations.
+
+Hardening (iteration 11): see `HARDENING.md` for the audit of better/weaker variants, brute force and shortcuts through the hidden test.
 
 ---
 

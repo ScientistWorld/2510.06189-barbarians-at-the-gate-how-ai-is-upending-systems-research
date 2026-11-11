@@ -1,5 +1,15 @@
 # Progress
 
+## Current State (iteration 11, hardening)
+
+- Workload: the paper's released EPLB expert-load trace; visible even layers in `data/`, hidden odd layers in `eval/test/`.
+- Policies: `baseline/eplb_greedy_deepseek.py` (paper's initial program, verbatim), `baseline/eplb_frontier_reference.py` (frontier reconstruction), `method/eplb_evolved.py` (zigzag reused in both packing stages).
+- Hidden test (`5ee210d1-272`): evolved 2.7865 speedup / 0.6583 balancedness; frontier 1.0 / 0.6583; greedy 0.0277 / 0.6618. Train: 2.7865 / 0.6674.
+- Audit and shortcut results: `HARDENING.md`, `redteam/hardening/results/`.
+
+## History (pre-hardening, synthetic-trace gym; superseded)
+
+
 ## What Works
 
 - Inherited workspace audit complete. The previous files were templates; no runnable method or evaluator existed.

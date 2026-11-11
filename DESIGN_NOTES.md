@@ -1,28 +1,7 @@
-Train/Test Evaluation Design Notes
+Train/Test Evaluation Design Notes (current, iteration 11)
 
-Checked:
-- Read `eval/train/evaluate.py`, `eval/test/evaluate.py`, `scripts/evaluate_train.sh`, `scripts/evaluate_test.sh`, and `scoring/reference.json`.
-- Confirmed both slice evaluators read method artifacts from `outputs/eplb/*.json` instead of importing or rerunning `method/`.
-- Confirmed `evaluate_test.sh` invokes `eval/test/evaluate.py` and writes `scoring/scores_test.json`.
-- Confirmed `evaluate_train.sh` invokes `eval/train/evaluate.py` and writes `scoring/scores_train.json`.
-- Confirmed there are no cross-imports between `eval/train/` and `eval/test/`.
-- Confirmed no `scoring/scores_train.json` or `scoring/scores_test.json` stubs are present.
-- Ran `bash -n` on both slice scripts.
-
-Changed:
-- Added family-level load-balance metrics to both train and test evaluators:
-  `family_imbalance_floor` and `family_imbalance_spread`.
-- Added high-skew trace metrics to both train and test evaluators:
-  `high_skew_mean_imbalance_factor` and `high_skew_mean_operation_count`.
-- Kept `reported_runtime_ms` as an explicitly unscored `coefficient: 0.0` reference metric so legacy paper-result keys validate, while ensuring hardware-dependent runtime does not drive the gym score.
-- Added required `higher_is_better`, `coefficient`, and `description` fields for every active metric in `scoring/reference.json`.
-- Reweighted balance/validity coefficients slightly so the score better reflects the paper's claim: work reduction without sacrificing placement validity or load balance.
-
-Problem fixed:
-- The first-pass schema declared metrics that were not fully described. `reported_runtime_ms` remains only as an unscored compatibility/context field because paper-result keys must be listed in `metrics`, but hardware-dependent runtime should not affect scoring.
-- The first-pass split mostly tested a global mean over an even/odd trace partition. The added family and high-skew metrics make visible-metric gaming harder by requiring improvements to hold across workload families and difficult load distributions.
-
-Runtime concerns for the next iteration:
-- This pass intentionally did not execute evaluators or produce numbers. The runner should verify that both slices emit all metrics listed in `scoring/reference.json`.
-- The trace pool is compact: 42 traces total, 21 per slice, with 7 traces per family per slice. The new family/high-skew metrics help triangulate behavior, but the runner should watch for metric saturation on the existing reproduction.
-- `eval/test/evaluate.py` uses `scoring/scores_train.json` when available to restrict test scoring to methods seen on train. If train scores are absent, it falls back to all artifacts in `outputs/eplb/`; the runner should check that this matches the final harness behavior.
+- Data: the paper's expert-load trace (abmfy/eplb-openevolve). Visible = even MoE layers (`data/eplb_train_windows.json`); hidden = odd layers, secretly relabelled, only in `eval/test/test_windows.json` (rebuilt by `eval/test/prepare_test_windows.py`). Four window offsets, 43 rebalances per method.
+- Interface: every `outputs/eplb/<name>.py` defines `rebalance_experts()`; `eval/{train,test}/evaluate.py` runs each in `harness.py` (sandboxed subprocess), streaming one window at a time and scoring on the next.
+- Scored: `speedup_vs_frontier_reference` (work of the frozen anchor in `eval/*/anchor_frontier_reference.py` / method work) and `balancedness` (next-window mean/max GPU load). Hard constraints: valid hierarchical placement, determinism, guards, balance within 0.005 of the anchor; any failure scores 0/0.
+- Work meter: bytecodes 1, C calls 1 (+2 per scanned Python element), torch kernels 20 (+0.06 per tensor element); calibrated to CPU time (Spearman 0.976). See `HARDENING.md`.
+- eval/train and eval/test share no code (duplicated harness/anchor), and neither imports method/.
