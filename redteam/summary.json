@@ -1,0 +1,1117 @@
+{
+  "cases": {
+    "better_no_unused_scatter": {
+      "cohort_rank_delta": 1.694780785501709e-05,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 0.9843463058114438,
+        "family_imbalance_spread": 0.00857686068434238,
+        "high_skew_mean_imbalance_factor": 0.9853451350354966,
+        "high_skew_mean_operation_count": 303.0,
+        "mean_imbalance_factor": 0.9878321601022865,
+        "mean_operation_count": 303.0,
+        "min_imbalance_factor": 0.9738389324402426,
+        "num_traces": 21.0,
+        "p95_operation_count": 303.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_frontier_reference": 6.650751176926285,
+        "work_efficiency_vs_greedy": 9.128482007545882
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": 2.9,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": 0.0,
+        "family_imbalance_spread": -0.0,
+        "high_skew_mean_imbalance_factor": 0.0,
+        "high_skew_mean_operation_count": 9.793165122315998e-07,
+        "mean_imbalance_factor": 0.0,
+        "mean_operation_count": 1.9586330244631997e-06,
+        "min_imbalance_factor": 0.0,
+        "p95_operation_count": 1.4689747683473995e-06,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": 1.254088354997489e-05
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 10.064624966005795,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "better_no_unused_scatter",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": true,
+        "train_exit": 0
+      }
+    },
+    "brute_force_placements": {
+      "cohort_rank_delta": -1.8088732649233497,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 0.9843463058114438,
+        "family_imbalance_spread": 0.00857686068434238,
+        "high_skew_mean_imbalance_factor": 0.9853451350354966,
+        "high_skew_mean_operation_count": 409904.0,
+        "mean_imbalance_factor": 0.9878321601022865,
+        "mean_operation_count": 409904.0,
+        "min_imbalance_factor": 0.9738389324402426,
+        "num_traces": 21.0,
+        "p95_operation_count": 409904.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_frontier_reference": 0.004916218447755242,
+        "work_efficiency_vs_greedy": 0.0067477508106444485
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": -2.9,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": 0.0,
+        "family_imbalance_spread": -0.0,
+        "high_skew_mean_imbalance_factor": 0.0,
+        "high_skew_mean_operation_count": -0.40112804341006325,
+        "mean_imbalance_factor": 0.0,
+        "mean_operation_count": -0.8022560868201265,
+        "min_imbalance_factor": 0.0,
+        "p95_operation_count": -0.6016920651150949,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": -0.0037970695780649008
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 24.21074688700901,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "brute_force_placements",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": true,
+        "train_exit": 0
+      }
+    },
+    "reference_seed_0": {
+      "cohort_rank_delta": 0.0,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 0.9843463058114438,
+        "family_imbalance_spread": 0.00857686068434238,
+        "high_skew_mean_imbalance_factor": 0.9853451350354966,
+        "high_skew_mean_operation_count": 304.0,
+        "mean_imbalance_factor": 0.9878321601022865,
+        "mean_operation_count": 304.0,
+        "min_imbalance_factor": 0.9738389324402426,
+        "num_traces": 21.0,
+        "p95_operation_count": 304.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_frontier_reference": 6.6288737059495535,
+        "work_efficiency_vs_greedy": 9.09845410620527
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": 0.0,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": 0.0,
+        "family_imbalance_spread": -0.0,
+        "high_skew_mean_imbalance_factor": 0.0,
+        "high_skew_mean_operation_count": -0.0,
+        "mean_imbalance_factor": 0.0,
+        "mean_operation_count": -0.0,
+        "min_imbalance_factor": 0.0,
+        "p95_operation_count": -0.0,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": 0.0
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 12.675996250007302,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "reference_seed_0",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": false,
+        "train_exit": 0
+      }
+    },
+    "reference_seed_1": {
+      "cohort_rank_delta": 0.0,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 0.9843463058114438,
+        "family_imbalance_spread": 0.00857686068434238,
+        "high_skew_mean_imbalance_factor": 0.9853451350354966,
+        "high_skew_mean_operation_count": 304.0,
+        "mean_imbalance_factor": 0.9878321601022865,
+        "mean_operation_count": 304.0,
+        "min_imbalance_factor": 0.9738389324402426,
+        "num_traces": 21.0,
+        "p95_operation_count": 304.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_frontier_reference": 6.6288737059495535,
+        "work_efficiency_vs_greedy": 9.09845410620527
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": 0.0,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": 0.0,
+        "family_imbalance_spread": -0.0,
+        "high_skew_mean_imbalance_factor": 0.0,
+        "high_skew_mean_operation_count": -0.0,
+        "mean_imbalance_factor": 0.0,
+        "mean_operation_count": -0.0,
+        "min_imbalance_factor": 0.0,
+        "p95_operation_count": -0.0,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": 0.0
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 8.894390132001718,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "reference_seed_1",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": false,
+        "train_exit": 0
+      }
+    },
+    "reference_seed_2": {
+      "cohort_rank_delta": 0.0,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 0.9843463058114438,
+        "family_imbalance_spread": 0.00857686068434238,
+        "high_skew_mean_imbalance_factor": 0.9853451350354966,
+        "high_skew_mean_operation_count": 304.0,
+        "mean_imbalance_factor": 0.9878321601022865,
+        "mean_operation_count": 304.0,
+        "min_imbalance_factor": 0.9738389324402426,
+        "num_traces": 21.0,
+        "p95_operation_count": 304.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_frontier_reference": 6.6288737059495535,
+        "work_efficiency_vs_greedy": 9.09845410620527
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": 0.0,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": 0.0,
+        "family_imbalance_spread": -0.0,
+        "high_skew_mean_imbalance_factor": 0.0,
+        "high_skew_mean_operation_count": -0.0,
+        "mean_imbalance_factor": 0.0,
+        "mean_operation_count": -0.0,
+        "min_imbalance_factor": 0.0,
+        "p95_operation_count": -0.0,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": 0.0
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 8.699815279993345,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "reference_seed_2",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": false,
+        "train_exit": 0
+      }
+    },
+    "shortcut_claim_one_operation": {
+      "cohort_rank_delta": 1.1527012759040665,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 0.9843463058114438,
+        "family_imbalance_spread": 0.00857686068434238,
+        "high_skew_mean_imbalance_factor": 0.9853451350354966,
+        "high_skew_mean_operation_count": 1.0,
+        "mean_imbalance_factor": 0.9878321601022865,
+        "mean_operation_count": 1.0,
+        "min_imbalance_factor": 0.9738389324402426,
+        "num_traces": 21.0,
+        "p95_operation_count": 1.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_frontier_reference": 2015.1776066086643,
+        "work_efficiency_vs_greedy": 2765.9300482864023
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": 2.9,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": 0.0,
+        "family_imbalance_spread": -0.0,
+        "high_skew_mean_imbalance_factor": 0.0,
+        "high_skew_mean_operation_count": 0.00029673290320617475,
+        "mean_imbalance_factor": 0.0,
+        "mean_operation_count": 0.0005934658064123495,
+        "min_imbalance_factor": 0.0,
+        "p95_operation_count": 0.00044509935480926206,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": 1.1513659778396386
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 1.8293350640014978,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "shortcut_claim_one_operation",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": true,
+        "train_exit": 0
+      }
+    },
+    "shortcut_drop_experts": {
+      "cohort_rank_delta": 0.09207554441676767,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 1.0,
+        "family_imbalance_spread": 0.0,
+        "high_skew_mean_imbalance_factor": 1.0,
+        "high_skew_mean_operation_count": 304.0,
+        "mean_imbalance_factor": 1.0,
+        "mean_operation_count": 304.0,
+        "min_imbalance_factor": 1.0,
+        "num_traces": 21.0,
+        "p95_operation_count": 304.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_frontier_reference": 6.7105263157894735,
+        "work_efficiency_vs_greedy": 9.210526315789474
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": 4.8999999999999995,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": 0.011253223151826103,
+        "family_imbalance_spread": 0.030364389657818926,
+        "high_skew_mean_imbalance_factor": 0.010547167020096115,
+        "high_skew_mean_operation_count": -0.0,
+        "mean_imbalance_factor": 0.01770747669054478,
+        "mean_operation_count": -0.0,
+        "min_imbalance_factor": 0.022156481943789903,
+        "p95_operation_count": -0.0,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": 4.6805952691839145e-05
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 1.3274932719941717,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "shortcut_drop_experts",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": true,
+        "train_exit": 0
+      }
+    },
+    "shortcut_empty_outputs": {
+      "cohort_rank_delta": -6.2886239624219185,
+      "metrics": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": 0.0,
+        "family_imbalance_spread": 0.0,
+        "high_skew_mean_imbalance_factor": 0.0,
+        "high_skew_mean_operation_count": 960.0,
+        "mean_imbalance_factor": 0.0,
+        "mean_operation_count": 960.0,
+        "min_imbalance_factor": 0.0,
+        "num_traces": 21.0,
+        "p95_operation_count": 960.0,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": 0.0,
+        "work_efficiency_vs_greedy": 0.0
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": -6.7,
+      "rank_terms": {
+        "complete_fraction": -1.6035674514745464,
+        "family_imbalance_floor": -0.7076328759552382,
+        "family_imbalance_spread": 0.030364389657818926,
+        "high_skew_mean_imbalance_factor": -0.7091569753000929,
+        "high_skew_mean_operation_count": -0.0006424316320239296,
+        "mean_imbalance_factor": -1.4375612348802091,
+        "mean_operation_count": -0.0012848632640478591,
+        "min_imbalance_factor": -0.8247692749344331,
+        "p95_operation_count": -0.0009636474480358941,
+        "valid_fraction": -1.0296097094754662,
+        "work_efficiency_vs_frontier_reference": -0.003799887715642371
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 1.1775505940022413,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "shortcut_empty_outputs",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": true,
+        "train_exit": 0
+      }
+    },
+    "shortcut_empty_replicas": {
+      "cohort_rank_delta": 0.09207554441676767,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 1.0,
+        "family_imbalance_spread": 0.0,
+        "high_skew_mean_imbalance_factor": 1.0,
+        "high_skew_mean_operation_count": 304.0,
+        "mean_imbalance_factor": 1.0,
+        "mean_operation_count": 304.0,
+        "min_imbalance_factor": 1.0,
+        "num_traces": 21.0,
+        "p95_operation_count": 304.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_frontier_reference": 6.7105263157894735,
+        "work_efficiency_vs_greedy": 9.210526315789474
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": 4.8999999999999995,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": 0.011253223151826103,
+        "family_imbalance_spread": 0.030364389657818926,
+        "high_skew_mean_imbalance_factor": 0.010547167020096115,
+        "high_skew_mean_operation_count": -0.0,
+        "mean_imbalance_factor": 0.01770747669054478,
+        "mean_operation_count": -0.0,
+        "min_imbalance_factor": 0.022156481943789903,
+        "p95_operation_count": -0.0,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": 4.6805952691839145e-05
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 2.121165596996434,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "shortcut_empty_replicas",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": true,
+        "train_exit": 0
+      }
+    },
+    "shortcut_flatten_workload": {
+      "cohort_rank_delta": 0.09207554441676767,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 1.0,
+        "family_imbalance_spread": 0.0,
+        "high_skew_mean_imbalance_factor": 1.0,
+        "high_skew_mean_operation_count": 304.0,
+        "mean_imbalance_factor": 1.0,
+        "mean_operation_count": 304.0,
+        "min_imbalance_factor": 1.0,
+        "num_traces": 21.0,
+        "p95_operation_count": 304.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_frontier_reference": 6.7105263157894735,
+        "work_efficiency_vs_greedy": 9.210526315789474
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": 4.8999999999999995,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": 0.011253223151826103,
+        "family_imbalance_spread": 0.030364389657818926,
+        "high_skew_mean_imbalance_factor": 0.010547167020096115,
+        "high_skew_mean_operation_count": -0.0,
+        "mean_imbalance_factor": 0.01770747669054478,
+        "mean_operation_count": -0.0,
+        "min_imbalance_factor": 0.022156481943789903,
+        "p95_operation_count": -0.0,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": 4.6805952691839145e-05
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 20.313151775990264,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "shortcut_flatten_workload",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": true,
+        "train_exit": 0
+      }
+    },
+    "shortcut_forged_summary": {
+      "cohort_rank_delta": -2.0764255570603978,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 0.5383561056100132,
+        "family_imbalance_spread": 0.12875147984864366,
+        "high_skew_mean_imbalance_factor": 0.5450727368854295,
+        "high_skew_mean_operation_count": 298.0,
+        "mean_imbalance_factor": 0.593862186910999,
+        "mean_operation_count": 298.0,
+        "min_imbalance_factor": 0.455826709117141,
+        "num_traces": 21.0,
+        "p95_operation_count": 298.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_frontier_reference": 4.065365306370597,
+        "work_efficiency_vs_greedy": 5.579913165606702
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": -4.0,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": -0.32061615526278503,
+        "family_imbalance_spread": -0.4254504180004204,
+        "high_skew_mean_imbalance_factor": -0.31686586869784683,
+        "high_skew_mean_operation_count": 5.8758990733896e-06,
+        "mean_imbalance_factor": -0.5733321752836493,
+        "mean_operation_count": 1.17517981467792e-05,
+        "min_imbalance_factor": -0.43871789431008884,
+        "p95_operation_count": 8.813848610084398e-06,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": -0.0014694870514373082
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 22.132788920993335,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "shortcut_forged_summary",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": true,
+        "train_exit": 0
+      }
+    },
+    "shortcut_impossible_values": {
+      "cohort_rank_delta": -4.685056510947371,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 0.0,
+        "family_imbalance_spread": 0.0,
+        "high_skew_mean_imbalance_factor": 0.0,
+        "high_skew_mean_operation_count": 960.0,
+        "mean_imbalance_factor": 0.0,
+        "mean_operation_count": 960.0,
+        "min_imbalance_factor": 0.0,
+        "num_traces": 21.0,
+        "p95_operation_count": 960.0,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": 0.0,
+        "work_efficiency_vs_greedy": 0.0
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": -5.9,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": -0.7076328759552382,
+        "family_imbalance_spread": 0.030364389657818926,
+        "high_skew_mean_imbalance_factor": -0.7091569753000929,
+        "high_skew_mean_operation_count": -0.0006424316320239296,
+        "mean_imbalance_factor": -1.4375612348802091,
+        "mean_operation_count": -0.0012848632640478591,
+        "min_imbalance_factor": -0.8247692749344331,
+        "p95_operation_count": -0.0009636474480358941,
+        "valid_fraction": -1.0296097094754662,
+        "work_efficiency_vs_frontier_reference": -0.003799887715642371
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 1.6997927880001953,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "shortcut_impossible_values",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": true,
+        "train_exit": 0
+      }
+    },
+    "shortcut_inflate_baseline": {
+      "cohort_rank_delta": 3.7960878279267285,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 0.9843463058114438,
+        "family_imbalance_spread": 0.00857686068434238,
+        "high_skew_mean_imbalance_factor": 0.9853451350354966,
+        "high_skew_mean_operation_count": 304.0,
+        "mean_imbalance_factor": 0.9878321601022865,
+        "mean_operation_count": 304.0,
+        "min_imbalance_factor": 0.9738389324402426,
+        "num_traces": 21.0,
+        "p95_operation_count": 304.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_frontier_reference": 6628.873705949553,
+        "work_efficiency_vs_greedy": 9.09845410620527
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": 2.0,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": 0.0,
+        "family_imbalance_spread": -0.0,
+        "high_skew_mean_imbalance_factor": 0.0,
+        "high_skew_mean_operation_count": -0.0,
+        "mean_imbalance_factor": 0.0,
+        "mean_operation_count": -0.0,
+        "min_imbalance_factor": 0.0,
+        "p95_operation_count": -0.0,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": 3.7960878279267285
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 2.1022762520005926,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "shortcut_inflate_baseline",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": true,
+        "train_exit": 0
+      }
+    },
+    "shortcut_malformed_artifact": {
+      "cohort_rank_delta": null,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 0.9843463058114438,
+        "family_imbalance_spread": 0.00857686068434238,
+        "high_skew_mean_imbalance_factor": 0.9853451350354966,
+        "high_skew_mean_operation_count": 304.0,
+        "mean_imbalance_factor": 0.9878321601022865,
+        "mean_operation_count": 304.0,
+        "min_imbalance_factor": 0.9738389324402426,
+        "num_traces": 21.0,
+        "p95_operation_count": 304.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_frontier_reference": 6.6288737059495535,
+        "work_efficiency_vs_greedy": 9.09845410620527
+      },
+      "pairwise_rank_delta": null,
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 1.1135045270057162,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "MALFORMED:evolved_zigzag.json",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "shortcut_malformed_artifact",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 1,
+        "test_scores_changed": false,
+        "train_exit": 1
+      }
+    },
+    "shortcut_omit_method_from_roster": {
+      "cohort_rank_delta": 0,
+      "metrics": {},
+      "missing_scored_metrics": [
+        "complete_fraction",
+        "family_imbalance_floor",
+        "family_imbalance_spread",
+        "high_skew_mean_imbalance_factor",
+        "high_skew_mean_operation_count",
+        "mean_imbalance_factor",
+        "mean_operation_count",
+        "min_imbalance_factor",
+        "p95_operation_count",
+        "valid_fraction",
+        "work_efficiency_vs_frontier_reference"
+      ],
+      "pairwise_rank_delta": 0,
+      "rank_terms": {},
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 1.1456214019999607,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "shortcut_omit_method_from_roster",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": true,
+        "train_exit": 0
+      }
+    },
+    "shortcut_remove_frontier": {
+      "cohort_rank_delta": 0.0,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 0.9843463058114438,
+        "family_imbalance_spread": 0.00857686068434238,
+        "high_skew_mean_imbalance_factor": 0.9853451350354966,
+        "high_skew_mean_operation_count": 304.0,
+        "mean_imbalance_factor": 0.9878321601022865,
+        "mean_operation_count": 304.0,
+        "min_imbalance_factor": 0.9738389324402426,
+        "num_traces": 21.0,
+        "p95_operation_count": 304.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_greedy": 9.09845410620527
+      },
+      "missing_scored_metrics": [
+        "work_efficiency_vs_frontier_reference"
+      ],
+      "pairwise_rank_delta": 0.0,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": 0.0,
+        "family_imbalance_spread": -0.0,
+        "high_skew_mean_imbalance_factor": 0.0,
+        "high_skew_mean_operation_count": -0.0,
+        "mean_imbalance_factor": 0.0,
+        "mean_operation_count": -0.0,
+        "min_imbalance_factor": 0.0,
+        "p95_operation_count": -0.0,
+        "valid_fraction": 0.0
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 1.848191623997991,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "shortcut_remove_frontier",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": true,
+        "train_exit": 0
+      }
+    },
+    "shortcut_visible_trace_cache": {
+      "cohort_rank_delta": 0.0,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 0.9843463058114438,
+        "family_imbalance_spread": 0.00857686068434238,
+        "high_skew_mean_imbalance_factor": 0.9853451350354966,
+        "high_skew_mean_operation_count": 304.0,
+        "mean_imbalance_factor": 0.9878321601022865,
+        "mean_operation_count": 304.0,
+        "min_imbalance_factor": 0.9738389324402426,
+        "num_traces": 21.0,
+        "p95_operation_count": 304.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_frontier_reference": 6.6288737059495535,
+        "work_efficiency_vs_greedy": 9.09845410620527
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": 0.0,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": 0.0,
+        "family_imbalance_spread": -0.0,
+        "high_skew_mean_imbalance_factor": 0.0,
+        "high_skew_mean_operation_count": -0.0,
+        "mean_imbalance_factor": 0.0,
+        "mean_operation_count": -0.0,
+        "min_imbalance_factor": 0.0,
+        "p95_operation_count": -0.0,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": 0.0
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 2.3585372239904245,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "shortcut_visible_trace_cache",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": false,
+        "train_exit": 0
+      }
+    },
+    "simple_greedy": {
+      "cohort_rank_delta": 0.06907095266165426,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 0.9983361589413376,
+        "family_imbalance_spread": 0.00044947987255727906,
+        "high_skew_mean_imbalance_factor": 0.9987540054949324,
+        "high_skew_mean_operation_count": 2800.0,
+        "mean_imbalance_factor": 0.998567838062508,
+        "mean_operation_count": 2800.0,
+        "min_imbalance_factor": 0.9966857326134602,
+        "num_traces": 21.0,
+        "p95_operation_count": 2800.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_frontier_reference": 0.7275279963026844,
+        "work_efficiency_vs_greedy": 0.998567838062508
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": 1.1102230246251565e-16,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": 0.010057110943630158,
+        "family_imbalance_spread": 0.028773110226337464,
+        "high_skew_mean_imbalance_factor": 0.00965041961349079,
+        "high_skew_mean_operation_count": -0.0024443740145300734,
+        "mean_imbalance_factor": 0.01562329623301018,
+        "mean_operation_count": -0.004888748029060147,
+        "min_imbalance_factor": 0.01934954352894784,
+        "p95_operation_count": -0.0036665610217951096,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": -0.003382844818376843
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 1.5041713509999681,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "simple_greedy",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": true,
+        "train_exit": 0
+      }
+    },
+    "weaker_without_snake": {
+      "cohort_rank_delta": -2.0764255570603978,
+      "metrics": {
+        "complete_fraction": 1.0,
+        "family_imbalance_floor": 0.5383561056100132,
+        "family_imbalance_spread": 0.12875147984864366,
+        "high_skew_mean_imbalance_factor": 0.5450727368854295,
+        "high_skew_mean_operation_count": 298.0,
+        "mean_imbalance_factor": 0.593862186910999,
+        "mean_operation_count": 298.0,
+        "min_imbalance_factor": 0.455826709117141,
+        "num_traces": 21.0,
+        "p95_operation_count": 298.0,
+        "valid_fraction": 1.0,
+        "work_efficiency_vs_frontier_reference": 4.065365306370597,
+        "work_efficiency_vs_greedy": 5.579913165606702
+      },
+      "missing_scored_metrics": [],
+      "pairwise_rank_delta": -4.0,
+      "rank_terms": {
+        "complete_fraction": 0.0,
+        "family_imbalance_floor": -0.32061615526278503,
+        "family_imbalance_spread": -0.4254504180004204,
+        "high_skew_mean_imbalance_factor": -0.31686586869784683,
+        "high_skew_mean_operation_count": 5.8758990733896e-06,
+        "mean_imbalance_factor": -0.5733321752836493,
+        "mean_operation_count": 1.17517981467792e-05,
+        "min_imbalance_factor": -0.43871789431008884,
+        "p95_operation_count": 8.813848610084398e-06,
+        "valid_fraction": 0.0,
+        "work_efficiency_vs_frontier_reference": -0.0014694870514373082
+      },
+      "status": {
+        "candidate_exit": 0,
+        "elapsed_seconds": 13.81836138399376,
+        "eval_tree_untouched": true,
+        "methods_on_disk": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "methods_scored": [
+          "evolved_zigzag",
+          "frontier_reference_zigzag",
+          "greedy_deepseek"
+        ],
+        "name": "weaker_without_snake",
+        "test_command": "bash scripts/evaluate_test.sh",
+        "test_command_arguments": [],
+        "test_exit": 0,
+        "test_scores_changed": true,
+        "train_exit": 0
+      }
+    }
+  },
+  "cohort": [
+    "reference_seed_0",
+    "better_no_unused_scatter",
+    "weaker_without_snake",
+    "simple_greedy",
+    "brute_force_placements",
+    "shortcut_claim_one_operation",
+    "shortcut_empty_replicas",
+    "shortcut_drop_experts",
+    "shortcut_inflate_baseline",
+    "shortcut_remove_frontier",
+    "shortcut_visible_trace_cache",
+    "shortcut_flatten_workload",
+    "shortcut_forged_summary",
+    "shortcut_empty_outputs",
+    "shortcut_impossible_values",
+    "shortcut_omit_method_from_roster"
+  ],
+  "cohort_population_sd": {
+    "complete_fraction": 0.24944382578492943,
+    "family_imbalance_floor": 0.34776023671973566,
+    "family_imbalance_spread": 0.042369667796700525,
+    "high_skew_mean_imbalance_factor": 0.3473649591539763,
+    "high_skew_mean_operation_count": 102112.03298525704,
+    "mean_imbalance_factor": 0.3435791589721748,
+    "mean_operation_count": 102112.03298525704,
+    "min_imbalance_factor": 0.3542223123615971,
+    "p95_operation_count": 102112.03298525704,
+    "valid_fraction": 0.339934634239519,
+    "work_efficiency_vs_frontier_reference": 1744.4919960822954
+  },
+  "metric_weights": {
+    "complete_fraction": {
+      "coefficient": 0.4,
+      "description": "Fraction of required slice traces for which the method emitted a placement artifact; catches methods that skip difficult traces.",
+      "higher_is_better": true
+    },
+    "family_imbalance_floor": {
+      "coefficient": 0.25,
+      "description": "Worst family-level mean load balance; catches methods tuned to one workload family while regressing on another.",
+      "higher_is_better": true
+    },
+    "family_imbalance_spread": {
+      "coefficient": -0.15,
+      "description": "Gap between best and worst family-level mean load balance; penalizes uneven behavior across workload families.",
+      "higher_is_better": false
+    },
+    "high_skew_mean_imbalance_factor": {
+      "coefficient": 0.25,
+      "description": "Mean load balance on the higher-skew half of the slice; catches methods that only handle easy load distributions.",
+      "higher_is_better": true
+    },
+    "high_skew_mean_operation_count": {
+      "coefficient": -0.1,
+      "description": "Mean counted rebalance work on higher-skew traces; catches hidden work blowups on difficult load distributions.",
+      "higher_is_better": false
+    },
+    "mean_imbalance_factor": {
+      "coefficient": 0.5,
+      "description": "Mean GPU load balance ratio across traces; preserves the paper's no-worse-load-balance constraint.",
+      "higher_is_better": true
+    },
+    "mean_operation_count": {
+      "coefficient": -0.2,
+      "description": "Mean machine-independent rebalance work; penalizes improvements that only win by increasing counted work.",
+      "higher_is_better": false
+    },
+    "min_imbalance_factor": {
+      "coefficient": 0.3,
+      "description": "Worst per-trace GPU load balance ratio on the slice; catches methods that keep the mean balanced while sacrificing hard cases.",
+      "higher_is_better": true
+    },
+    "p95_operation_count": {
+      "coefficient": -0.15,
+      "description": "High-percentile rebalance work across traces; catches methods that hide rare expensive placements behind a good mean.",
+      "higher_is_better": false
+    },
+    "valid_fraction": {
+      "coefficient": 0.35,
+      "description": "Fraction of slice traces with structurally valid placement artifacts.",
+      "higher_is_better": true
+    },
+    "work_efficiency_vs_frontier_reference": {
+      "coefficient": 1.0,
+      "description": "Primary machine-independent operation-count efficiency against the stronger reference baseline, adjusted by measured GPU load balance on the scored slice.",
+      "higher_is_better": true
+    }
+  },
+  "normalization_caveat": "Future attempt cohort is unknown. Cohort ranks here describe this audit; dominance conclusions are invariant to positive metric scaling.",
+  "rank_formula": "sum abs(coefficient) * experiment_weight * signed_delta / cohort_population_sd; missing skipped",
+  "reference": {
+    "complete_fraction": 1.0,
+    "family_imbalance_floor": 0.9843463058114438,
+    "family_imbalance_spread": 0.00857686068434238,
+    "high_skew_mean_imbalance_factor": 0.9853451350354966,
+    "high_skew_mean_operation_count": 304.0,
+    "mean_imbalance_factor": 0.9878321601022865,
+    "mean_operation_count": 304.0,
+    "min_imbalance_factor": 0.9738389324402426,
+    "num_traces": 21.0,
+    "p95_operation_count": 304.0,
+    "valid_fraction": 1.0,
+    "work_efficiency_vs_frontier_reference": 6.6288737059495535,
+    "work_efficiency_vs_greedy": 9.09845410620527
+  },
+  "seed_test_metric_spread": {
+    "complete_fraction": 0.0,
+    "family_imbalance_floor": 0.0,
+    "family_imbalance_spread": 0.0,
+    "high_skew_mean_imbalance_factor": 0.0,
+    "high_skew_mean_operation_count": 0.0,
+    "mean_imbalance_factor": 0.0,
+    "mean_operation_count": 0.0,
+    "min_imbalance_factor": 0.0,
+    "p95_operation_count": 0.0,
+    "valid_fraction": 0.0,
+    "work_efficiency_vs_frontier_reference": 0.0
+  }
+}

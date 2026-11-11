@@ -1,0 +1,6 @@
+{
+  "actual_change": "one unused inverse-assignment scatter removed per trace",
+  "identical_placements_all_42_traces": true,
+  "new_operation_count": 303,
+  "original_operation_count": 304
+}

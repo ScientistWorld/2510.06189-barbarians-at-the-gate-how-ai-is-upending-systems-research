@@ -1,0 +1,13 @@
+{
+  "experiments": {
+    "eplb_moe_placement": {
+      "results": {
+        "evolved_zigzag": {
+          "mean_imbalance_factor": 999,
+          "valid_fraction": 999,
+          "work_efficiency_vs_frontier_reference": 1e+30
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,299 @@
+{
+  "elapsed_seconds": 5.513642242993228,
+  "traces": [
+    {
+      "best_balance": 0.9909318899924904,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 130.61083804518347,
+      "log10_partitions_lower_bound": 56.56262180908487,
+      "trace_id": "sharegpt_like_000"
+    },
+    {
+      "best_balance": 0.9931690317331752,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 129.61083804518347,
+      "log10_partitions_lower_bound": 55.56262180908487,
+      "trace_id": "sharegpt_like_001"
+    },
+    {
+      "best_balance": 0.9876384192270294,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 130.15490608953374,
+      "log10_partitions_lower_bound": 56.106689853435135,
+      "trace_id": "sharegpt_like_002"
+    },
+    {
+      "best_balance": 0.9848211771332019,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 125.46961230814695,
+      "log10_partitions_lower_bound": 51.421396072048346,
+      "trace_id": "sharegpt_like_003"
+    },
+    {
+      "best_balance": 0.9838528159710329,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 122.6650912461896,
+      "log10_partitions_lower_bound": 48.616875010091,
+      "trace_id": "sharegpt_like_004"
+    },
+    {
+      "best_balance": 0.977061204496236,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 127.47129627490163,
+      "log10_partitions_lower_bound": 53.42308003880303,
+      "trace_id": "sharegpt_like_005"
+    },
+    {
+      "best_balance": 0.9971712401503963,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 130.67778483481408,
+      "log10_partitions_lower_bound": 56.62956859871547,
+      "trace_id": "sharegpt_like_006"
+    },
+    {
+      "best_balance": 0.9919503158568115,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 130.10375356708636,
+      "log10_partitions_lower_bound": 56.055537330987754,
+      "trace_id": "sharegpt_like_007"
+    },
+    {
+      "best_balance": 0.9857743313727668,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 128.95762553140813,
+      "log10_partitions_lower_bound": 54.90940929530952,
+      "trace_id": "sharegpt_like_008"
+    },
+    {
+      "best_balance": 0.9876129075175124,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 131.000004129548,
+      "log10_partitions_lower_bound": 56.951787893449385,
+      "trace_id": "sharegpt_like_009"
+    },
+    {
+      "best_balance": 0.9923260651635156,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 131.77815537993163,
+      "log10_partitions_lower_bound": 57.72993914383303,
+      "trace_id": "sharegpt_like_010"
+    },
+    {
+      "best_balance": 0.9850308970807585,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 133.5532801756851,
+      "log10_partitions_lower_bound": 59.5050639395865,
+      "trace_id": "sharegpt_like_011"
+    },
+    {
+      "best_balance": 0.9903862961020801,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 133.11394748185484,
+      "log10_partitions_lower_bound": 59.06573124575623,
+      "trace_id": "sharegpt_like_012"
+    },
+    {
+      "best_balance": 0.9839435221797109,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 132.47712538426765,
+      "log10_partitions_lower_bound": 58.42890914816905,
+      "trace_id": "sharegpt_like_013"
+    },
+    {
+      "best_balance": 0.9956896551724138,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 136.28567393550807,
+      "log10_partitions_lower_bound": 62.23745769940947,
+      "trace_id": "gsm8k_like_014"
+    },
+    {
+      "best_balance": 0.9923092602464799,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 136.1095826764524,
+      "log10_partitions_lower_bound": 62.06136644035379,
+      "trace_id": "gsm8k_like_015"
+    },
+    {
+      "best_balance": 0.9935994347750117,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 132.17609538860367,
+      "log10_partitions_lower_bound": 58.127879152505066,
+      "trace_id": "gsm8k_like_016"
+    },
+    {
+      "best_balance": 0.989896889562973,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 135.9846439398441,
+      "log10_partitions_lower_bound": 61.93642770374549,
+      "trace_id": "gsm8k_like_017"
+    },
+    {
+      "best_balance": 0.9979061666172546,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 133.0092121313348,
+      "log10_partitions_lower_bound": 58.9609958952362,
+      "trace_id": "gsm8k_like_018"
+    },
+    {
+      "best_balance": 0.9951723617711398,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 135.20649268946045,
+      "log10_partitions_lower_bound": 61.15827645336184,
+      "trace_id": "gsm8k_like_019"
+    },
+    {
+      "best_balance": 0.9935639353558264,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 133.6782189122934,
+      "log10_partitions_lower_bound": 59.6300026761948,
+      "trace_id": "gsm8k_like_020"
+    },
+    {
+      "best_balance": 0.9926295461860315,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 133.9334914173967,
+      "log10_partitions_lower_bound": 59.885275181298105,
+      "trace_id": "gsm8k_like_021"
+    },
+    {
+      "best_balance": 0.9912744606778128,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 129.51392803217541,
+      "log10_partitions_lower_bound": 55.46571179607681,
+      "trace_id": "gsm8k_like_022"
+    },
+    {
+      "best_balance": 0.9950926884351182,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 133.11394748185484,
+      "log10_partitions_lower_bound": 59.06573124575623,
+      "trace_id": "gsm8k_like_023"
+    },
+    {
+      "best_balance": 0.9852719882583987,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 132.4863333860545,
+      "log10_partitions_lower_bound": 58.43811714995589,
+      "trace_id": "gsm8k_like_024"
+    },
+    {
+      "best_balance": 0.991355051035009,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 132.3357962314712,
+      "log10_partitions_lower_bound": 58.28757999537259,
+      "trace_id": "gsm8k_like_025"
+    },
+    {
+      "best_balance": 0.9954901960784314,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 133.6324614217327,
+      "log10_partitions_lower_bound": 59.584245185634096,
+      "trace_id": "gsm8k_like_026"
+    },
+    {
+      "best_balance": 0.9940063682337517,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 133.41497747751882,
+      "log10_partitions_lower_bound": 59.366761241420214,
+      "trace_id": "gsm8k_like_027"
+    },
+    {
+      "best_balance": 0.9858729253442465,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 128.04939590476377,
+      "log10_partitions_lower_bound": 54.001179668665166,
+      "trace_id": "shifted_dialog_028"
+    },
+    {
+      "best_balance": 0.9816409324288875,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 129.97881483047806,
+      "log10_partitions_lower_bound": 55.930598594379454,
+      "trace_id": "shifted_dialog_029"
+    },
+    {
+      "best_balance": 0.9867289709717776,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 130.9488516071006,
+      "log10_partitions_lower_bound": 56.900635371002004,
+      "trace_id": "shifted_dialog_030"
+    },
+    {
+      "best_balance": 0.9862422920265823,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 133.41497747751882,
+      "log10_partitions_lower_bound": 59.366761241420214,
+      "trace_id": "shifted_dialog_031"
+    },
+    {
+      "best_balance": 0.9820872895555733,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 131.79172818712092,
+      "log10_partitions_lower_bound": 57.74351195102232,
+      "trace_id": "shifted_dialog_032"
+    },
+    {
+      "best_balance": 0.9891144285626109,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 129.35239549329066,
+      "log10_partitions_lower_bound": 55.304179257192054,
+      "trace_id": "shifted_dialog_033"
+    },
+    {
+      "best_balance": 0.988841524573721,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 132.93785622279916,
+      "log10_partitions_lower_bound": 58.88963998670055,
+      "trace_id": "shifted_dialog_034"
+    },
+    {
+      "best_balance": 0.9925076188068086,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 129.58087482180605,
+      "log10_partitions_lower_bound": 55.532658585707445,
+      "trace_id": "shifted_dialog_035"
+    },
+    {
+      "best_balance": 0.991645634324782,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 131.49069819145691,
+      "log10_partitions_lower_bound": 57.44248195535831,
+      "trace_id": "shifted_dialog_036"
+    },
+    {
+      "best_balance": 0.9900872156143695,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 129.73577678179177,
+      "log10_partitions_lower_bound": 55.68756054569317,
+      "trace_id": "shifted_dialog_037"
+    },
+    {
+      "best_balance": 0.9891267414203194,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 128.9788148304781,
+      "log10_partitions_lower_bound": 54.93059859437948,
+      "trace_id": "shifted_dialog_038"
+    },
+    {
+      "best_balance": 0.9738389324402426,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 121.74427249223722,
+      "log10_partitions_lower_bound": 47.69605625613861,
+      "trace_id": "shifted_dialog_039"
+    },
+    {
+      "best_balance": 0.9807512676808113,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 129.3767548391501,
+      "log10_partitions_lower_bound": 55.32853860305149,
+      "trace_id": "shifted_dialog_040"
+    },
+    {
+      "best_balance": 0.9769927208006053,
+      "candidates_tried": 2048,
+      "log10_distinct_sequences": 126.51536979870762,
+      "log10_partitions_lower_bound": 52.46715356260902,
+      "trace_id": "shifted_dialog_041"
+    }
+  ]
+}

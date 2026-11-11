@@ -1,0 +1,21 @@
+{
+  "candidate_exit": 0,
+  "elapsed_seconds": 8.894390132001718,
+  "eval_tree_untouched": true,
+  "methods_on_disk": [
+    "evolved_zigzag",
+    "frontier_reference_zigzag",
+    "greedy_deepseek"
+  ],
+  "methods_scored": [
+    "evolved_zigzag",
+    "frontier_reference_zigzag",
+    "greedy_deepseek"
+  ],
+  "name": "reference_seed_1",
+  "test_command": "bash scripts/evaluate_test.sh",
+  "test_command_arguments": [],
+  "test_exit": 0,
+  "test_scores_changed": false,
+  "train_exit": 0
+}

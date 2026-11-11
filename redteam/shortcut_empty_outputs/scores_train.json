@@ -1,0 +1,58 @@
+{
+  "_slice": {
+    "name": "train",
+    "num_traces": 21,
+    "split": "even trace index within each family"
+  },
+  "experiments": {
+    "eplb_moe_placement": {
+      "results": {
+        "evolved_zigzag": {
+          "complete_fraction": 0.0,
+          "family_imbalance_floor": 0.0,
+          "family_imbalance_spread": 0.0,
+          "high_skew_mean_imbalance_factor": 0.0,
+          "high_skew_mean_operation_count": 960.0,
+          "mean_imbalance_factor": 0.0,
+          "mean_operation_count": 960.0,
+          "min_imbalance_factor": 0.0,
+          "num_traces": 21.0,
+          "p95_operation_count": 960.0,
+          "valid_fraction": 0.0,
+          "work_efficiency_vs_frontier_reference": 0.0,
+          "work_efficiency_vs_greedy": 0.0
+        },
+        "frontier_reference_zigzag": {
+          "complete_fraction": 1.0,
+          "family_imbalance_floor": 0.9864363362673189,
+          "family_imbalance_spread": 0.006820211866273795,
+          "high_skew_mean_imbalance_factor": 0.9887605264841093,
+          "high_skew_mean_operation_count": 2040.0,
+          "mean_imbalance_factor": 0.9898062499421757,
+          "mean_operation_count": 2040.0,
+          "min_imbalance_factor": 0.9807512676808113,
+          "num_traces": 21.0,
+          "p95_operation_count": 2040.0,
+          "valid_fraction": 1.0,
+          "work_efficiency_vs_frontier_reference": 0.9898062499421757,
+          "work_efficiency_vs_greedy": 1.358557597959849
+        },
+        "greedy_deepseek": {
+          "complete_fraction": 1.0,
+          "family_imbalance_floor": 0.998245267372687,
+          "family_imbalance_spread": 0.0006372540073689148,
+          "high_skew_mean_imbalance_factor": 0.9986059488882958,
+          "high_skew_mean_operation_count": 2800.0,
+          "mean_imbalance_factor": 0.9984852843227626,
+          "mean_operation_count": 2800.0,
+          "min_imbalance_factor": 0.9964825888146323,
+          "num_traces": 21.0,
+          "p95_operation_count": 2800.0,
+          "valid_fraction": 1.0,
+          "work_efficiency_vs_frontier_reference": 0.7274678500065842,
+          "work_efficiency_vs_greedy": 0.9984852843227626
+        }
+      }
+    }
+  }
+}

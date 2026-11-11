@@ -1,0 +1,58 @@
+{
+  "_slice": {
+    "name": "train",
+    "num_traces": 21,
+    "split": "even trace index within each family"
+  },
+  "experiments": {
+    "eplb_moe_placement": {
+      "results": {
+        "evolved_zigzag": {
+          "complete_fraction": 1.0,
+          "family_imbalance_floor": 1.0,
+          "family_imbalance_spread": 0.0,
+          "high_skew_mean_imbalance_factor": 1.0,
+          "high_skew_mean_operation_count": 304.0,
+          "mean_imbalance_factor": 1.0,
+          "mean_operation_count": 304.0,
+          "min_imbalance_factor": 1.0,
+          "num_traces": 21.0,
+          "p95_operation_count": 304.0,
+          "valid_fraction": 1.0,
+          "work_efficiency_vs_frontier_reference": 6.7105263157894735,
+          "work_efficiency_vs_greedy": 9.210526315789474
+        },
+        "frontier_reference_zigzag": {
+          "complete_fraction": 1.0,
+          "family_imbalance_floor": 1.0,
+          "family_imbalance_spread": 0.0,
+          "high_skew_mean_imbalance_factor": 1.0,
+          "high_skew_mean_operation_count": 2040.0,
+          "mean_imbalance_factor": 1.0,
+          "mean_operation_count": 2040.0,
+          "min_imbalance_factor": 1.0,
+          "num_traces": 21.0,
+          "p95_operation_count": 2040.0,
+          "valid_fraction": 1.0,
+          "work_efficiency_vs_frontier_reference": 1.0,
+          "work_efficiency_vs_greedy": 1.3725490196078431
+        },
+        "greedy_deepseek": {
+          "complete_fraction": 1.0,
+          "family_imbalance_floor": 1.0,
+          "family_imbalance_spread": 0.0,
+          "high_skew_mean_imbalance_factor": 1.0,
+          "high_skew_mean_operation_count": 2800.0,
+          "mean_imbalance_factor": 1.0,
+          "mean_operation_count": 2800.0,
+          "min_imbalance_factor": 1.0,
+          "num_traces": 21.0,
+          "p95_operation_count": 2800.0,
+          "valid_fraction": 1.0,
+          "work_efficiency_vs_frontier_reference": 0.7285714285714285,
+          "work_efficiency_vs_greedy": 1.0
+        }
+      }
+    }
+  }
+}

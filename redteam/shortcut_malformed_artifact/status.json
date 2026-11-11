@@ -1,0 +1,21 @@
+{
+  "candidate_exit": 0,
+  "elapsed_seconds": 1.1135045270057162,
+  "eval_tree_untouched": true,
+  "methods_on_disk": [
+    "MALFORMED:evolved_zigzag.json",
+    "frontier_reference_zigzag",
+    "greedy_deepseek"
+  ],
+  "methods_scored": [
+    "evolved_zigzag",
+    "frontier_reference_zigzag",
+    "greedy_deepseek"
+  ],
+  "name": "shortcut_malformed_artifact",
+  "test_command": "bash scripts/evaluate_test.sh",
+  "test_command_arguments": [],
+  "test_exit": 1,
+  "test_scores_changed": false,
+  "train_exit": 1
+}
