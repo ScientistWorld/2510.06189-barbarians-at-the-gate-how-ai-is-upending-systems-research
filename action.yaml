@@ -1,8 +1,6 @@
 # Once you set action to 'submit' or 'done', STOP immediately.
 # Do NOT sleep, poll, or wait for jobs. The system reads this file
 # only after your turn ends.
-action: submit
-gpus: 0
-test: false
+action: done
 milestone: core_claim
-notes: "Confirming job with recalibrated work weights: reproduce reference/baselines (train+hidden test), validate, full hardening audit (resumable) incl. forged-score and roster shortcuts that job 1 lost to preemption."
+notes: "Hardened EPLB gym on the paper's real trace: executed policies with measured, CPU-calibrated work; hidden relabelled layers; validity/locality/balance gates; reference 2.79x speedup at identical 0.658 balance; better variants score higher, all audited shortcuts fail or tie (see HARDENING.md)."
