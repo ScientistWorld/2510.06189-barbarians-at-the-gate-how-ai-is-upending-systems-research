@@ -1,4 +1,7 @@
 #!/bin/bash
-set -euo pipefail
+set -e
+
 cd /home/user
-python redteam/audit.py all
+
+bash scripts/reproduce.sh
+python validate.py --compare

@@ -534,6 +534,10 @@ if __name__ == '__main__':
     elif command == 'summarize':
         summarize()
     elif command == 'all':
+        if '--fresh' in sys.argv[2:]:
+            for name in CASES:
+                (HERE / name / 'status.json').unlink(missing_ok=True)
+            shutil.rmtree(HERE / '.work/cache', ignore_errors=True)
         all_cases()
     else:
         raise ValueError(command)
