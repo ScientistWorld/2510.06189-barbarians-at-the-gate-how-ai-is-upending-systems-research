@@ -1,4 +1,2 @@
-action: submit
-gpus: 0
-test: false
-notes: "Resume audit: test invalid node-group metadata and bounded exhaustive placement traversal; recompute ranks including clean controls."
+action: done
+notes: "Completed 21-run scoring audit: honest controls move correctly, five strict-win shortcuts and three scored ties documented; original gym files restored."
