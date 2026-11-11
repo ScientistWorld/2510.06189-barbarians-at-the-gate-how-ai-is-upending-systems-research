@@ -29,7 +29,8 @@ CANDIDATE = 'evolved_zigzag'
 CASES = [
     'reference_seed_0', 'reference_seed_1', 'reference_seed_2',
     'better_no_unused_scatter', 'weaker_without_snake', 'simple_greedy',
-    'brute_force_placements',
+    'brute_force_placements', 'brute_force_enumeration',
+    'shortcut_ignore_node_groups',
     'shortcut_claim_one_operation', 'shortcut_empty_replicas',
     'shortcut_drop_experts', 'shortcut_inflate_baseline',
     'shortcut_remove_frontier', 'shortcut_visible_trace_cache',
@@ -190,6 +191,55 @@ def brute_force_outputs(method, traces, evidence):
     return outputs
 
 
+def enumerate_outputs(method, traces, evidence):
+    """Systematically enumerate the first 2048 unique multiset permutations.
+
+    This is an explicit attempt at brute-force enumeration, stopped at a fixed
+    budget. It does not claim to complete an astronomical search space.
+    """
+    from eplb_common import gpu_loads_from_placement, imbalance_factor
+    outputs = []
+    diagnostics = []
+    for trace in traces:
+        result = method.run_trace(trace)
+        counts = result['replica_counts']
+        pool = sorted(result['physical_to_logical'])
+        best = result['physical_to_logical'][:]
+        best_balance = imbalance_factor(gpu_loads_from_placement(
+            trace['loads'], counts, best, trace['num_gpus']))
+        visited = 0
+        exhausted = False
+        for _ in range(2048):
+            balance = imbalance_factor(gpu_loads_from_placement(
+                trace['loads'], counts, pool, trace['num_gpus']))
+            visited += 1
+            if balance > best_balance:
+                best_balance, best = balance, pool[:]
+            # Next lexicographic distinct permutation, duplicates respected.
+            i = len(pool) - 2
+            while i >= 0 and pool[i] >= pool[i + 1]:
+                i -= 1
+            if i < 0:
+                exhausted = True
+                break
+            j = len(pool) - 1
+            while pool[j] <= pool[i]:
+                j -= 1
+            pool[i], pool[j] = pool[j], pool[i]
+            pool[i + 1:] = reversed(pool[i + 1:])
+        result['physical_to_logical'] = best
+        # A conservative slot-visit lower bound for enumeration plus scoring.
+        result['operation_count'] += visited * (2 * len(pool) + trace['num_gpus'])
+        outputs.append(result)
+        diagnostics.append({'trace_id': trace['id'], 'visited': visited,
+                            'space_exhausted': exhausted,
+                            'best_balance': best_balance})
+    write(evidence / 'enumeration.json', {'traces': diagnostics,
+        'scope': 'fixed reference replica counts; no replica-allocation enumeration',
+        'operation_count_is_lower_bound': True})
+    return outputs
+
+
 def policy(name):
     """Install an output artifact exactly as a future policy script would."""
     cache = setup_cache()
@@ -208,10 +258,12 @@ def policy(name):
         write(folder / 'seed.json', {'python_seed': seed, 'torch_seed': seed,
                                     'generator_seed': 251006189})
     elif name in ('better_no_unused_scatter', 'weaker_without_snake',
-                  'brute_force_placements'):
+                  'brute_force_placements', 'brute_force_enumeration'):
         method, _, _ = load_public_modules()
         if name == 'brute_force_placements':
             outputs = brute_force_outputs(method, traces, folder)
+        elif name == 'brute_force_enumeration':
+            outputs = enumerate_outputs(method, traces, folder)
         else:
             fn = better_output if name == 'better_no_unused_scatter' else weaker_output
             outputs = [fn(method, t) for t in traces]
@@ -229,6 +281,9 @@ def policy(name):
     elif name == 'simple_greedy':
         base = read(cache / 'greedy_deepseek.json')
         base['method'] = CANDIDATE
+    elif name == 'shortcut_ignore_node_groups':
+        for item in base['outputs']:
+            item['group_to_node'] = [-999] * len(item['group_to_node'])
     elif name == 'shortcut_claim_one_operation':
         for item in base['outputs']:
             item['operation_count'] = 1
@@ -429,8 +484,23 @@ def summarize():
     seed_spread = {metric: max(rows[f'reference_seed_{s}']['metrics'][metric] for s in range(3))
                    - min(rows[f'reference_seed_{s}']['metrics'][metric] for s in range(3))
                    for metric in metrics}
+    science_cohort = ['reference_seed_0', 'better_no_unused_scatter',
+                      'weaker_without_snake', 'simple_greedy',
+                      'brute_force_placements', 'brute_force_enumeration']
+    science_sd = {m: statistics.pstdev(rows[n]['metrics'][m] for n in science_cohort)
+                  for m in metrics}
+    science_ranks = {}
+    for name in science_cohort:
+        science_ranks[name] = sum(
+            abs(spec['coefficient']) * config.get('weight', 1)
+            * (1 if spec['higher_is_better'] else -1)
+            * (rows[name]['metrics'][m] - reference[m]) / science_sd[m]
+            for m, spec in metrics.items() if science_sd[m] > 0)
     write(HERE / 'summary.json', {
         'reference': reference, 'metric_weights': metrics,
+        'science_cohort': science_cohort,
+        'science_cohort_population_sd': science_sd,
+        'science_cohort_rank_deltas': science_ranks,
         'rank_formula': 'sum abs(coefficient) * experiment_weight * signed_delta / cohort_population_sd; missing skipped',
         'cohort': cohort, 'cohort_population_sd': spreads,
         'seed_test_metric_spread': seed_spread, 'cases': rows,
