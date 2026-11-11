@@ -46,9 +46,9 @@ TOOL_ID = 4
 # reported cost from the raw counters with the same constants.
 W_INSTRUCTION = 1.0
 W_C_CALL = 1.0
-W_PY_ELEMENT = 1.0
-W_KERNEL = 400.0
-W_TENSOR_ELEMENT = 0.1
+W_PY_ELEMENT = 2.0
+W_KERNEL = 20.0
+W_TENSOR_ELEMENT = 0.06
 COST_CAP = 5.0e8
 
 

@@ -50,15 +50,17 @@ Unscored diagnostics: `mean_rebalance_cost`, `balance_change_vs_frontier_referen
 
 ## Rebalance Work Measure
 
-The evaluator runs the policy in a sandboxed process and counts the work of each `rebalance_experts` call itself. Self-reported numbers are ignored. Work units, where one unit is roughly one interpreted bytecode:
+The evaluator runs the policy in a sandboxed process and counts the work of each `rebalance_experts` call itself. Self-reported numbers are ignored. One work unit is roughly one interpreted Python bytecode (about 14 ns on the calibration host):
 
 | event | units |
 |---|---|
 | Python bytecode instruction executed (any code run by the call) | 1 |
 | call from Python into a C function | 1 |
-| element of a Python container scanned by such a call (`sorted`, `sum`, `max`, `list(...)`, `torch.tensor(list)`, `.tolist()`, `list.index`, ...; sorts pay `n log2 n`, heap/bisect ops `log2 n`) | 1 |
-| PyTorch kernel dispatched | 400 |
-| tensor element read or written by a non-view kernel (sort-like kernels times `log2` of the sorted length) | 0.1 |
+| element of a Python container scanned by such a call (`sorted`, `sum`, `max`, `list(...)`, `torch.tensor(list)`, `.tolist()`, `list.index`, ...; sorts pay `n log2 n`, heap/bisect ops `log2 n`) | 2 |
+| PyTorch kernel dispatched | 20 |
+| tensor element read or written by a non-view kernel (sort-like kernels times `log2` of the sorted length) | 0.06 |
+
+The weights were calibrated once against unmetered CPU time of greedy-loop, tensorised, pure-Python and search-heavy policies on the job host. Work units track CPU time within about 2x across these very different implementation styles, and they rank those policies in the same order as CPU time.
 
 Work done at import time is not counted, but it cannot depend on the windows. A single rebalance above 5e8 units fails the run. Wall-clock time is never scored.
 

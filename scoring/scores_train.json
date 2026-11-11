@@ -1,56 +1,59 @@
 {
+  "_anchor": {
+    "balancedness": 0.6673626145130609,
+    "mean_cost": 2004235.1947442507,
+    "name": "frontier_reference_zigzag"
+  },
+  "_failures": {},
   "_slice": {
     "name": "train",
-    "num_traces": 21,
-    "split": "even trace index within each family"
+    "num_rebalances_per_method": 43,
+    "windows": "visible (even) MoE layers of the paper's trace, 4 window offsets"
+  },
+  "_work_measure": {
+    "balance_tolerance_vs_anchor": 0.005,
+    "per_rebalance_cap": 500000000.0,
+    "units_per_bytecode": 1.0,
+    "units_per_c_call": 1.0,
+    "units_per_scanned_python_element": 1.0,
+    "units_per_tensor_element": 0.1,
+    "units_per_torch_kernel": 400.0
   },
   "experiments": {
     "eplb_moe_placement": {
       "results": {
         "evolved_zigzag": {
-          "complete_fraction": 1.0,
-          "family_imbalance_floor": 0.9864363362673189,
-          "family_imbalance_spread": 0.006820211866273795,
-          "high_skew_mean_imbalance_factor": 0.9887605264841093,
-          "high_skew_mean_operation_count": 304.0,
-          "mean_imbalance_factor": 0.9898062499421757,
-          "mean_operation_count": 304.0,
-          "min_imbalance_factor": 0.9807512676808113,
-          "num_traces": 21.0,
-          "p95_operation_count": 304.0,
+          "balance_change_vs_frontier_reference": 0.0,
+          "balancedness": 0.6673626145130609,
+          "diagnostic_cpu_ms_per_rebalance": 1.4232288372093023,
+          "mean_rebalance_cost": 266587.7687347767,
+          "num_rebalances": 43.0,
+          "run_failed": 0.0,
+          "speedup_vs_frontier_reference": 7.518106341698774,
           "valid_fraction": 1.0,
-          "work_efficiency_vs_frontier_reference": 6.642120887769863,
-          "work_efficiency_vs_greedy": 9.116636512625304
+          "worst_window_balancedness": 0.40848129475799105
         },
         "frontier_reference_zigzag": {
-          "complete_fraction": 1.0,
-          "family_imbalance_floor": 0.9864363362673189,
-          "family_imbalance_spread": 0.006820211866273795,
-          "high_skew_mean_imbalance_factor": 0.9887605264841093,
-          "high_skew_mean_operation_count": 2040.0,
-          "mean_imbalance_factor": 0.9898062499421757,
-          "mean_operation_count": 2040.0,
-          "min_imbalance_factor": 0.9807512676808113,
-          "num_traces": 21.0,
-          "p95_operation_count": 2040.0,
+          "balance_change_vs_frontier_reference": 0.0,
+          "balancedness": 0.6673626145130609,
+          "diagnostic_cpu_ms_per_rebalance": 4.819743953488373,
+          "mean_rebalance_cost": 2004235.1947442507,
+          "num_rebalances": 43.0,
+          "run_failed": 0.0,
+          "speedup_vs_frontier_reference": 1.0,
           "valid_fraction": 1.0,
-          "work_efficiency_vs_frontier_reference": 0.9898062499421757,
-          "work_efficiency_vs_greedy": 1.358557597959849
+          "worst_window_balancedness": 0.40848129475799105
         },
         "greedy_deepseek": {
-          "complete_fraction": 1.0,
-          "family_imbalance_floor": 0.998245267372687,
-          "family_imbalance_spread": 0.0006372540073689148,
-          "high_skew_mean_imbalance_factor": 0.9986059488882958,
-          "high_skew_mean_operation_count": 2800.0,
-          "mean_imbalance_factor": 0.9984852843227626,
-          "mean_operation_count": 2800.0,
-          "min_imbalance_factor": 0.9964825888146323,
-          "num_traces": 21.0,
-          "p95_operation_count": 2800.0,
+          "balance_change_vs_frontier_reference": -0.0003354336500688282,
+          "balancedness": 0.6670271808629921,
+          "diagnostic_cpu_ms_per_rebalance": 178.03968386046512,
+          "mean_rebalance_cost": 97912597.40051132,
+          "num_rebalances": 43.0,
+          "run_failed": 0.0,
+          "speedup_vs_frontier_reference": 0.020469635654194015,
           "valid_fraction": 1.0,
-          "work_efficiency_vs_frontier_reference": 0.7274678500065842,
-          "work_efficiency_vs_greedy": 0.9984852843227626
+          "worst_window_balancedness": 0.40942276024582586
         }
       }
     }

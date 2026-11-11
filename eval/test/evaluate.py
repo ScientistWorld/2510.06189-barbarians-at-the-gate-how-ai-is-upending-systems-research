@@ -53,9 +53,9 @@ ANCHOR_NAME = "frontier_reference_zigzag"
 # Work units per measured event (one unit ~ one interpreted bytecode).
 W_INSTRUCTION = 1.0
 W_C_CALL = 1.0
-W_PY_ELEMENT = 1.0
-W_KERNEL = 400.0
-W_TENSOR_ELEMENT = 0.1
+W_PY_ELEMENT = 2.0
+W_KERNEL = 20.0
+W_TENSOR_ELEMENT = 0.06
 COST_CAP = 5.0e8
 
 BALANCE_TOLERANCE = 0.005

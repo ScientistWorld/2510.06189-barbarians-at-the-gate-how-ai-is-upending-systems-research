@@ -16,6 +16,7 @@ Results go to redteam/hardening/results/.  Usage: python redteam/hardening/run_a
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import shutil
@@ -42,6 +43,35 @@ PUBLISHED = {
     "frontier_reference_zigzag": ROOT / "baseline" / "eplb_frontier_reference.py",
     "greedy_deepseek": ROOT / "baseline" / "eplb_greedy_deepseek.py",
 }
+
+
+def eval_hash() -> str:
+    digest = hashlib.sha256()
+    for rel in ("eval/test/evaluate.py", "eval/test/harness.py", "eval/test/anchor_frontier_reference.py",
+                "eval/test/test_windows.json", "eval/train/evaluate.py", "eval/train/harness.py",
+                "data/eplb_train_windows.json"):
+        digest.update((ROOT / rel).read_bytes())
+    for case in sorted(CASES.glob("*.py")):
+        digest.update(case.read_bytes())
+    return digest.hexdigest()
+
+
+STAGES = RESULTS / "stages.json"
+
+
+def stage_done(name: str) -> bool:
+    if not STAGES.exists():
+        return False
+    return json.loads(STAGES.read_text()).get(name) == EVAL_HASH
+
+
+def mark_done(name: str) -> None:
+    done = json.loads(STAGES.read_text()) if STAGES.exists() else {}
+    done[name] = EVAL_HASH
+    STAGES.write_text(json.dumps(done, indent=2, sort_keys=True) + "\n")
+
+
+EVAL_HASH = ""
 
 
 def log(msg: str) -> None:
@@ -154,8 +184,13 @@ def spearman(xs: list[float], ys: list[float]) -> float:
 
 
 def disk_level_runs(combined: dict) -> dict:
-    out = {}
+    disk_file = RESULTS / "disk_level_shortcuts.json"
+    out = json.loads(disk_file.read_text()) if disk_file.exists() and stage_done("disk_partial") else {}
     ref_combined = combined[REFERENCE]
+
+    def save() -> None:
+        disk_file.write_text(json.dumps(out, indent=2, sort_keys=True) + "\n")
+        mark_done("disk_partial")
 
     def compare(tag: str, res: dict, extra: dict | None = None) -> None:
         mine = res.get(REFERENCE, {})
@@ -167,8 +202,25 @@ def disk_level_runs(combined: dict) -> dict:
             **(extra or {}),
         }
         log(f"{tag}: reference unchanged = {out[tag]['reference_unchanged']}")
+        save()
 
     # (a) slow down / inflate the published comparator policy
+    if "shortcut_inflate_baseline" in out:
+        pass
+    else:
+        _inflate(compare)
+    if "shortcut_remove_frontier" not in out:
+        _remove(compare)
+    if "shortcut_flatten_workload" not in out:
+        _flatten(compare)
+    if "shortcut_forged_summary" not in out:
+        _forged(compare)
+    if "shortcut_omit_method_from_roster" not in out:
+        _roster(compare)
+    return out
+
+
+def _inflate(compare) -> None:
     d = fresh_dir(WORK / "inflate_frontier")
     stage_outputs(d, [REFERENCE])
     slow = PUBLISHED["frontier_reference_zigzag"].read_text().replace(
@@ -181,13 +233,15 @@ def disk_level_runs(combined: dict) -> dict:
     compare("shortcut_inflate_baseline", res,
             {"edited_frontier_speedup": res.get("frontier_reference_zigzag", {}).get("speedup_vs_frontier_reference")})
 
-    # (b) remove the comparator policy entirely
+
+def _remove(compare) -> None:
     d = fresh_dir(WORK / "remove_frontier")
     stage_outputs(d, [REFERENCE])
     run_eval("test", d, d / "scores.json", None, "remove_frontier")
     compare("shortcut_remove_frontier", results_of(d / "scores.json"))
 
-    # (c) flatten the visible workload file the method could edit
+
+def _flatten(compare) -> None:
     train_file = ROOT / "data" / "eplb_train_windows.json"
     backup = WORK / "train_windows.backup.json"
     shutil.copy(train_file, backup)
@@ -204,7 +258,8 @@ def disk_level_runs(combined: dict) -> dict:
     finally:
         shutil.copy(backup, train_file)
 
-    # (d) forged score file is overwritten by the hidden test
+
+def _forged(compare) -> None:
     d = fresh_dir(WORK / "forged")
     stage_outputs(d, [REFERENCE])
     forged = {"experiments": {EXP: {"results": {REFERENCE: {
@@ -213,7 +268,8 @@ def disk_level_runs(combined: dict) -> dict:
     run_eval("test", d, d / "scores.json", None, "forged")
     compare("shortcut_forged_summary", results_of(d / "scores.json"))
 
-    # (e) roster omission: the hidden test no longer reads the train roster
+
+def _roster(compare) -> None:
     train_scores = ROOT / "scoring" / "scores_train.json"
     moved = WORK / "scores_train.moved.json"
     had = train_scores.exists()
@@ -227,33 +283,61 @@ def disk_level_runs(combined: dict) -> dict:
     finally:
         if had:
             shutil.move(moved, train_scores)
+
+
+def mean_counts(details: dict) -> dict:
+    out = {}
+    for name, rec in details.items():
+        if rec.get("failure") or not rec.get("calls"):
+            continue
+        out[name] = [statistics.fmean(c["counts"][i] for c in rec["calls"]) for i in range(5)]
     return out
 
 
 def main() -> None:
+    global EVAL_HASH
     RESULTS.mkdir(parents=True, exist_ok=True)
     WORK.mkdir(parents=True, exist_ok=True)
+    EVAL_HASH = eval_hash()
     case_names = sorted(p.stem for p in CASES.glob("*.py"))
     all_names = list(PUBLISHED) + case_names
 
-    combined_dir = fresh_dir(WORK / "combined")
-    stage_outputs(combined_dir, all_names)
-    run_eval("test", combined_dir, RESULTS / "combined_scores_test.json",
-             WORK / "combined_details_test.json", "combined_test")
+    details_test = RESULTS / "combined_details_test.json"
+    if not stage_done("combined_test"):
+        combined_dir = fresh_dir(WORK / "combined")
+        stage_outputs(combined_dir, all_names)
+        run_eval("test", combined_dir, RESULTS / "combined_scores_test.json", details_test, "combined_test")
+        mark_done("combined_test")
     combined = results_of(RESULTS / "combined_scores_test.json")
     combined_payload = json.loads((RESULTS / "combined_scores_test.json").read_text())
-    details = json.loads((WORK / "combined_details_test.json").read_text())
+    details = json.loads(details_test.read_text())
 
-    train_dir = fresh_dir(WORK / "train")
-    stage_outputs(train_dir, HONEST)
-    run_eval("train", train_dir, RESULTS / "honest_scores_train.json", None, "honest_train")
+    details_train = RESULTS / "honest_details_train.json"
+    if not stage_done("honest_train"):
+        train_dir = fresh_dir(WORK / "train")
+        stage_outputs(train_dir, HONEST)
+        run_eval("train", train_dir, RESULTS / "honest_scores_train.json", details_train, "honest_train")
+        mark_done("honest_train")
     train = results_of(RESULTS / "honest_scores_train.json")
 
     disk = disk_level_runs(combined)
 
     metrics = scored_metrics()
     honest_present = [m for m in HONEST if m in combined]
+    counts_now = mean_counts(details)
+    determinism = None
+    job1 = RESULTS / "job1_mean_counts_test.json"
+    if job1.exists():
+        previous = json.loads(job1.read_text())
+        determinism = {
+            name: {"identical_raw_counters": [round(a, 6) for a in counts_now[name]]
+                   == [round(b, 6) for b in previous[name][0]]}
+            for name in counts_now if name in previous
+        }
     summary = {
+        "evaluator_hash": EVAL_HASH,
+        "determinism_vs_job1_counters": determinism,
+        "mean_counts_test": counts_now,
         "scored_metrics": metrics,
         "anchor": combined_payload.get("_anchor"),
         "failures": combined_payload.get("_failures"),
