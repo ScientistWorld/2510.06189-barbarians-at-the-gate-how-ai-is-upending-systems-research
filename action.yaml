@@ -1,6 +1,8 @@
 # Once you set action to 'submit' or 'done', STOP immediately.
 # Do NOT sleep, poll, or wait for jobs. The system reads this file
 # only after your turn ends.
-action: done
+action: pending
+gpus: 0
+test: false
 milestone: core_claim
-notes: "Hardened EPLB gym on the paper's real trace: executed policies with measured, CPU-calibrated work; hidden relabelled layers; validity/locality/balance gates; reference 2.79x speedup at identical 0.658 balance; better variants score higher, all audited shortcuts fail or tie (see HARDENING.md)."
+notes: ""
