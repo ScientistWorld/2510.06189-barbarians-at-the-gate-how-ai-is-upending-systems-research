@@ -1,59 +1,51 @@
 {
-  "_anchor": {
-    "balancedness": 0.6673626145130609,
-    "mean_cost": 347527.900701675,
-    "name": "frontier_reference_zigzag"
+  "_failures": {
+    "evolved_zigzag": "evaluation did not complete",
+    "frontier_reference_zigzag": "evaluation did not complete",
+    "greedy_deepseek": "evaluation did not complete"
   },
-  "_failures": {},
+  "_measurement": {
+    "balance_tolerance_vs_anchor": 0.005,
+    "instruction_cap_per_rebalance": 100000000000.0,
+    "work": "retired user-space instructions of the policy process tree (hardware counter)"
+  },
   "_slice": {
     "name": "train",
-    "num_rebalances_per_method": 43,
-    "windows": "visible (even) MoE layers of the paper's trace, 4 window offsets"
-  },
-  "_work_measure": {
-    "balance_tolerance_vs_anchor": 0.005,
-    "per_rebalance_cap": 500000000.0,
-    "units_per_bytecode": 1.0,
-    "units_per_c_call": 1.0,
-    "units_per_scanned_python_element": 2.0,
-    "units_per_tensor_element": 0.06,
-    "units_per_torch_kernel": 20.0
+    "num_rebalances_per_method": 20,
+    "windows": "visible (even) MoE layers in time blocks 0 and 2 of the paper's trace"
   },
   "experiments": {
     "eplb_moe_placement": {
       "results": {
         "evolved_zigzag": {
-          "balance_change_vs_frontier_reference": 0.0,
-          "balancedness": 0.6673626145130609,
-          "diagnostic_cpu_ms_per_rebalance": 1.6067530232558138,
-          "mean_rebalance_cost": 124717.3031013311,
-          "num_rebalances": 43.0,
-          "run_failed": 0.0,
-          "speedup_vs_frontier_reference": 2.786525141738459,
-          "valid_fraction": 1.0,
-          "worst_window_balancedness": 0.40848129475799105
+          "balancedness": 0.0,
+          "diagnostic_cpu_ms_per_rebalance": 0.0,
+          "mean_rebalance_instructions": 100000000000.0,
+          "num_rebalances": 20.0,
+          "run_failed": 1.0,
+          "speedup_vs_frontier_reference": 0.0,
+          "valid_fraction": 0.0,
+          "worst_window_balancedness": 0.0
         },
         "frontier_reference_zigzag": {
-          "balance_change_vs_frontier_reference": 0.0,
-          "balancedness": 0.6673626145130609,
-          "diagnostic_cpu_ms_per_rebalance": 5.282027441860465,
-          "mean_rebalance_cost": 347527.900701675,
-          "num_rebalances": 43.0,
-          "run_failed": 0.0,
-          "speedup_vs_frontier_reference": 1.0,
-          "valid_fraction": 1.0,
-          "worst_window_balancedness": 0.40848129475799105
+          "balancedness": 0.0,
+          "diagnostic_cpu_ms_per_rebalance": 0.0,
+          "mean_rebalance_instructions": 100000000000.0,
+          "num_rebalances": 20.0,
+          "run_failed": 1.0,
+          "speedup_vs_frontier_reference": 0.0,
+          "valid_fraction": 0.0,
+          "worst_window_balancedness": 0.0
         },
         "greedy_deepseek": {
-          "balance_change_vs_frontier_reference": -0.0003354336500688282,
-          "balancedness": 0.6670271808629921,
-          "diagnostic_cpu_ms_per_rebalance": 181.25621388372093,
-          "mean_rebalance_cost": 12531451.169910239,
-          "num_rebalances": 43.0,
-          "run_failed": 0.0,
-          "speedup_vs_frontier_reference": 0.02773245460478974,
-          "valid_fraction": 1.0,
-          "worst_window_balancedness": 0.40942276024582586
+          "balancedness": 0.0,
+          "diagnostic_cpu_ms_per_rebalance": 0.0,
+          "mean_rebalance_instructions": 100000000000.0,
+          "num_rebalances": 20.0,
+          "run_failed": 1.0,
+          "speedup_vs_frontier_reference": 0.0,
+          "valid_fraction": 0.0,
+          "worst_window_balancedness": 0.0
         }
       }
     }
