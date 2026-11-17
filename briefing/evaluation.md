@@ -67,9 +67,9 @@ Rebalance work is the number of CPU instructions the policy process executes for
 - Nothing in the policy process takes part in the measurement, and self-reported numbers are ignored.
 - Every operation is charged by the instructions it actually executes, in Python, torch, numpy or any other library.
 - Kernel work (page faults, system calls) is not counted.
-- The count does not depend on machine load. Repeated runs agree to about 0.05%, and two copies of the same code under different file names to about 0.3%.
+- The count does not depend on machine load. Repeated runs give the same mean to within 0.03% (single pairs to within 0.2%), the same code on AMD and Intel job nodes to within 0.2%, and code that differs only by a few unused lines to within about 0.3% (memory layout). Treat smaller differences as ties.
 - The torch kernels are pinned to the same CPU code path on every x86 host (`ATEN_CPU_CAPABILITY=default`).
-- Instructions are not time: code with many cheap instructions (a Python interpreter loop) retires them faster than code dominated by library dispatch. The measure rewards executing fewer instructions.
+- Instructions are not time. On the job hosts, torch-dispatch-heavy code retires about 1.1 instructions per cycle, numpy code about 1.7, and a plain Python interpreter loop about 4. A Python implementation therefore pays several times more per unit of CPU time than a tensorised one. The measure rewards executing fewer instructions, not fewer cycles.
 
 Work done at import is not counted, but it cannot depend on the windows. A single call above 1e11 instructions (roughly 30 s of CPU) fails the run, as does a process that makes no progress at all for 10 minutes. No wall-clock limit applies to a policy that is computing.
 

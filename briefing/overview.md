@@ -17,4 +17,4 @@ The paper proposes AI-Driven Research for Systems (ADRS), a generate-evaluate-re
 
 ## Reproduced Here
 
-The evaluator runs each policy itself and measures its rebalance work deterministically (no wall-clock). The reproduced evolved policy keeps the reference's next-window balance and needs several times less work than the frontier reference. The greedy initial program needs tens of times more. See `HARDENING.md` for the measured numbers.
+The evaluator runs each policy itself in a sandboxed process and counts the CPU instructions of each rebalance with a hardware counter (deterministic, no wall-clock). On the hidden test, the reproduced evolved policy keeps the frontier reference's next-window balance (0.686) with 4.66x fewer instructions (paper: 5.3x less time). The greedy initial program needs about 40x more instructions than the frontier reference. See `HARDENING.md` for the measured numbers.

@@ -68,6 +68,8 @@ Current iteration update: the reproduction scripts have been tightened so train/
 
 ## Issues
 
+- Iteration 12 (hardening): the gym runs on the paper's real expert-load trace (the synthetic-trace notes below are historical). Work is the CPU instruction count of the policy process, read from a hardware counter outside it; it is deterministic but charges plain Python code several times more per CPU cycle than tensorised code (see `HARDENING.md`).
+
 - Continuation packaging audit found that `scripts/run.sh` had drifted to train/test evaluation only and could evaluate stale outputs without regenerating method artifacts. It has been corrected to run `scripts/reproduce.sh` followed by `python validate.py --compare`.
 - Exact ShareGPT/GSM8K expert-load traces from the paper are not released.
 - The non-public frontier-lab reference implementation is unavailable; this workspace now includes a faithful frontier-reference-style tensorized zigzag baseline reconstructed from the paper description.

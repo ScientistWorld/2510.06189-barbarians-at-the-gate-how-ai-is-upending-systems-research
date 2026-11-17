@@ -37,3 +37,8 @@
 - Rebuilt the gym on the paper's released expert-load trace and evaluator protocol (288 replicas, 8 groups, 4 nodes, 32 GPUs, 100-step windows, scored on the next window); greedy and frontier reach the paper's 0.66 balance.
 - Methods are policy files run by the evaluator; the hidden test streams held-out, relabelled layers one window at a time and measures rebalance work itself (calibrated to CPU time, deterministic).
 - Reference `evolved_zigzag`: 2.79x less work than the frozen frontier reference with identical balance (0.6583 test / 0.6674 train); honest leaner variants score higher (3.87x, 4.14x); weaker, simple and brute-force variants and all audited shortcuts score lower or tie. Details in `HARDENING.md`.
+
+### [2026-11-17] - core_claim (hardening, iteration 12)
+- Rebalance work is now counted outside the policy process: retired user-space CPU instructions from a hardware counter the evaluator attaches to the policy process tree. Each pair runs in a freshly forked, Landlock-sandboxed process (no workspace access, no exec, no writes), one scored call per process.
+- Hidden test moved to held-out time blocks (odd layers × time blocks 1 and 3; visible: even layers × blocks 0 and 2), 20 pairs per slice.
+- Reference `evolved_zigzag`: 4.66x fewer instructions than the frozen frontier reference with identical balance (0.6863 test / 0.6810 train; paper 5.3x, same 0.66 level). Honest leaner variants win on 20/20 paired windows (+1.8%, +8.7%); weaker variants fail the balance gate; every audited shortcut fails, ties or loses. Details in `HARDENING.md`.
