@@ -97,7 +97,7 @@ def run_eval(slice_: str, outputs: Path, scores: Path, details: Path | None, tag
              timeout: float | None = None) -> int:
     cmd = [sys.executable, str(ROOT / "eval" / slice_ / "evaluate.py"),
            "--outputs-dir", str(outputs), "--scores", str(scores),
-           "--log-dir", str(WORK / "logs" / tag)]
+           "--log-dir", str(WORK / "logs" / tag), "--diagnostics"]
     if details is not None:
         cmd += ["--details", str(details)]
     log(f"{tag}: {' '.join(cmd[1:3])} on {outputs.name}")
@@ -398,14 +398,25 @@ def main() -> None:
     metrics = scored_metrics()
     honest_present = [m for m in HONEST if m in combined]
     ok = [m for m in combined if not combined[m]["run_failed"]]
-    calibration = {
-        m: {"instructions": combined[m]["mean_rebalance_instructions"],
-            "cpu_ms": combined[m]["diagnostic_cpu_ms_per_rebalance"],
-            "instructions_per_cpu_ms": combined[m]["mean_rebalance_instructions"]
-            / max(combined[m]["diagnostic_cpu_ms_per_rebalance"], 1e-9)}
-        for m in ok
-    }
+
+    def mean_of(name: str, key: str) -> float:
+        calls = details[name]["calls"]
+        return statistics.fmean(c.get(key, 0.0) for c in calls)
+
+    calibration = {}
+    for m in ok:
+        instr = mean_of(m, "instructions")
+        cycles = mean_of(m, "cycles")
+        calibration[m] = {
+            "instructions": instr,
+            "user_cycles": cycles,
+            "instructions_per_user_cycle": instr / cycles if cycles else None,
+            "page_faults": mean_of(m, "page_faults"),
+            "cpu_ms": mean_of(m, "cpu_ns") / 1e6,
+            "instructions_per_cpu_ms": instr / max(mean_of(m, "cpu_ns") / 1e6, 1e-9),
+        }
     ipms = [v["instructions_per_cpu_ms"] for v in calibration.values()]
+    ipc = [v["instructions_per_user_cycle"] for v in calibration.values() if v["instructions_per_user_cycle"]]
     summary = {
         "evaluator_hash": EVAL_HASH,
         "scored_metrics": metrics,
@@ -425,14 +436,19 @@ def main() -> None:
             "spearman_instructions_vs_cpu": spearman([v["instructions"] for v in calibration.values()],
                                                      [v["cpu_ms"] for v in calibration.values()])
             if len(ok) > 2 else None,
+            "spearman_instructions_vs_user_cycles": spearman(
+                [v["instructions"] for v in calibration.values()],
+                [v["user_cycles"] for v in calibration.values()]) if len(ok) > 2 else None,
             "instructions_per_cpu_ms_min": min(ipms) if ipms else None,
             "instructions_per_cpu_ms_max": max(ipms) if ipms else None,
+            "instructions_per_user_cycle_min": min(ipc) if ipc else None,
+            "instructions_per_user_cycle_max": max(ipc) if ipc else None,
         },
     }
     (RESULTS / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
 
-    lines = ["| method | speedup | balancedness | instructions | cpu ms | failed | rank Δ honest | rank Δ full | reason |",
-             "|---|---:|---:|---:|---:|---:|---:|---:|---|"]
+    lines = ["| method | speedup | balancedness | instructions | instr/cycle | cpu ms | failed | rank Δ honest | rank Δ full | reason |",
+             "|---|---:|---:|---:|---:|---:|---:|---:|---:|---|"]
     rh = summary["ranks_honest_cohort"]["ranks"]
     rf = summary["ranks_full_cohort"]["ranks"]
     for m in all_names:
@@ -442,7 +458,9 @@ def main() -> None:
         reason = (summary["failures"] or {}).get(m, "")
         lines.append(
             f"| {m} | {r['speedup_vs_frontier_reference']:.4f} | {r['balancedness']:.4f} | "
-            f"{r['mean_rebalance_instructions']:.4g} | {r['diagnostic_cpu_ms_per_rebalance']:.2f} | "
+            f"{r['mean_rebalance_instructions']:.4g} | "
+            f"{(calibration.get(m, {}).get('instructions_per_user_cycle') or float('nan')):.2f} | "
+            f"{r['diagnostic_cpu_ms_per_rebalance']:.2f} | "
             f"{int(r['run_failed'])} | {rh.get(m, {}).get('rank_delta', float('nan')):.3f} | "
             f"{rf[m]['rank_delta']:.3f} | {reason[:110]} |"
         )

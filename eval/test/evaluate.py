@@ -48,6 +48,7 @@ from __future__ import annotations
 
 import argparse
 import ctypes
+import fcntl
 import json
 import os
 import platform
@@ -112,6 +113,7 @@ _LIBC = ctypes.CDLL(None, use_errno=True)
 _LIBC.syscall.restype = ctypes.c_long
 PERF_TYPE_HARDWARE, PERF_COUNT_HW_INSTRUCTIONS = 0, 1
 PERF_TYPE_SOFTWARE, PERF_COUNT_SW_TASK_CLOCK = 1, 1
+F_SETPIPE_SZ = 1031
 _FLAGS = (1 << 1) | (1 << 5) | (1 << 6)  # inherit to new threads/processes, user space only
 _READ_FORMAT = 1 | 2  # time enabled, time running
 
@@ -136,16 +138,30 @@ def _perf_open(pid: int, type_: int, config: int) -> int:
     return int(fd)
 
 
+PERF_COUNT_HW_CPU_CYCLES, PERF_COUNT_SW_PAGE_FAULTS = 0, 2
+DIAGNOSTICS = False  # --diagnostics: also count user cycles and page faults (audit only)
+
+
 class Counters:
-    """Retired user-space instructions and CPU time of one process tree."""
+    """Retired user-space instructions (scored) and diagnostics of one process tree."""
 
     def __init__(self, pid: int):
         self.instr_fd = _perf_open(pid, PERF_TYPE_HARDWARE, PERF_COUNT_HW_INSTRUCTIONS)
-        try:
-            self.clock_fd = _perf_open(pid, PERF_TYPE_SOFTWARE, PERF_COUNT_SW_TASK_CLOCK)
-        except MeasurementUnavailable:
-            self.clock_fd = None
+        self.extra = {}
+        wanted = [("cpu_ns", PERF_TYPE_SOFTWARE, PERF_COUNT_SW_TASK_CLOCK)]
+        if DIAGNOSTICS:
+            wanted += [("cycles", PERF_TYPE_HARDWARE, PERF_COUNT_HW_CPU_CYCLES),
+                       ("page_faults", PERF_TYPE_SOFTWARE, PERF_COUNT_SW_PAGE_FAULTS)]
+        for name, type_, config in wanted:
+            try:
+                self.extra[name] = _perf_open(pid, type_, config)
+            except MeasurementUnavailable:
+                pass
+        self.clock_fd = self.extra.get("cpu_ns")
         self.multiplexed = False
+
+    def diagnostics(self) -> dict:
+        return {name: self._read(fd)[0] for name, fd in self.extra.items()}
 
     @staticmethod
     def _read(fd: int) -> tuple[float, bool]:
@@ -163,9 +179,8 @@ class Counters:
         return self._read(self.clock_fd)[0] if self.clock_fd is not None else 0.0
 
     def close(self) -> None:
-        for fd in (self.instr_fd, self.clock_fd):
-            if fd is not None:
-                os.close(fd)
+        for fd in [self.instr_fd, *self.extra.values()]:
+            os.close(fd)
 
 
 def _no_aslr() -> None:
@@ -239,22 +254,27 @@ class Zygote:
     START_TIMEOUT_S = 1800.0  # torch import only; no policy code runs in the zygote
     CONTROL_TIMEOUT_S = 300.0
 
-    def __init__(self, policy_path: Path, log, workdir: Path):
+    def __init__(self, policy_path: Path, log):
         parent, child = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
-        env = {k: v for k, v in os.environ.items() if not k.startswith(("PYTHON", "ATEN_", "OMP_", "MKL_"))}
-        env.update({
+        # A fixed environment and working directory: the policy process starts
+        # from the same state in every run, so its instruction counts repeat.
+        env = {
+            "PATH": "/usr/local/bin:/usr/bin:/bin",
+            "LANG": "C.UTF-8",
             "PYTHONHASHSEED": "0",
             "OMP_NUM_THREADS": "1",
             "MKL_NUM_THREADS": "1",
             "OPENBLAS_NUM_THREADS": "1",
             "ATEN_CPU_CAPABILITY": "default",  # same kernels on every x86 host
-            "HOME": str(workdir),
-        })
+            "HOME": "/nonexistent",
+        }
+        if "LD_LIBRARY_PATH" in os.environ:
+            env["LD_LIBRARY_PATH"] = os.environ["LD_LIBRARY_PATH"]
         self.proc = subprocess.Popen(
             [sys.executable, "-s", "-B", "-P", str(HARNESS_PATH), "--policy", str(policy_path),
              "--control-fd", str(child.fileno()), "--workspace", str(ROOT)],
             stdin=subprocess.DEVNULL, stdout=log, stderr=log, pass_fds=(child.fileno(),), env=env,
-            cwd=str(workdir), preexec_fn=_no_aslr,
+            cwd="/", preexec_fn=_no_aslr,
         )
         child.close()
         self.sock = parent
@@ -280,6 +300,11 @@ class Zygote:
     def fork(self) -> "Session":
         req_r, req_w = os.pipe()
         rep_r, rep_w = os.pipe()
+        for fd in (req_w, rep_r):  # fewer round trips for large placements
+            try:
+                fcntl.fcntl(fd, F_SETPIPE_SZ, 1 << 20)
+            except OSError:
+                pass
         try:
             socket.send_fds(self.sock, [b'{"cmd":"fork"}'], [req_r, rep_w])
         except OSError as exc:
@@ -546,11 +571,10 @@ def run_policy(policy_path: Path, workload: dict, log_dir: Path) -> dict:
         return record
 
     policy_path = policy_path.resolve()
-    workdir = Path(tempfile.mkdtemp(prefix="eplb_policy_"))
     with (log_dir.resolve() / f"{policy_path.stem}.log").open("wb") as log:
         zygote = None
         try:
-            zygote = Zygote(policy_path, log, workdir)
+            zygote = Zygote(policy_path, log)
             for index, pair in enumerate(pairs):
                 session = None
                 try:
@@ -563,7 +587,7 @@ def run_policy(policy_path: Path, workload: dict, log_dir: Path) -> dict:
                     session.load()  # fresh module for the scored call
                     request = int64_bytes(pair["load"])
                     before_instr = session.counters.instructions()
-                    before_cpu = session.counters.cpu_ns()
+                    before_diag = session.counters.diagnostics()
                     session.send({"cmd": "call", "shape": shape, **cfg}, request)
                     reply, payload = session.receive(CALL_CAP, f"rebalance of pair {index}")
                     if not reply.get("ok"):
@@ -575,14 +599,16 @@ def run_policy(policy_path: Path, workload: dict, log_dir: Path) -> dict:
                         raise HarnessError(f"pair {index} (start {pair['start']}): invalid placement: {reason}")
                     # The policy process is idle again; read the counters once it is.
                     instructions = session.counters.instructions() - before_instr
-                    cpu_ns = session.counters.cpu_ns() - before_cpu
+                    after_diag = session.counters.diagnostics()
+                    diag = {k: after_diag[k] - before_diag[k] for k in after_diag}
                     if instructions <= 0 or instructions > CALL_CAP:
                         raise HarnessError(f"pair {index}: impossible instruction count {instructions}")
                     record["multiplexed"] |= session.counters.multiplexed
                     record["valid"] += 1
                     record["calls"].append({
                         "pair": index, "start": pair["start"], "instructions": instructions,
-                        "cpu_ns": cpu_ns,
+                        "cpu_ns": diag.get("cpu_ns", 0.0),
+                        **{k: v for k, v in diag.items() if k != "cpu_ns"},
                         "balancedness": balancedness(phy2log, logcnt, pair["next_load"], cfg,
                                                      num_layers, num_experts),
                     })
@@ -666,8 +692,12 @@ def main() -> None:
     parser.add_argument("--outputs-dir", default=str(ROOT / "outputs" / "eplb"))
     parser.add_argument("--scores", default=str(ROOT / "scoring" / "scores_test.json"))
     parser.add_argument("--details", default=None, help="optional per-call record dump (JSON)")
+    parser.add_argument("--diagnostics", action="store_true",
+                        help="also record user cycles and page faults per call (unscored)")
     parser.add_argument("--log-dir", default=None)
     args = parser.parse_args()
+    global DIAGNOSTICS
+    DIAGNOSTICS = args.diagnostics
     _LIBC.prctl(PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0)  # adopt anything a policy leaves behind
 
     workload = json.loads(WINDOWS_PATH.read_text())

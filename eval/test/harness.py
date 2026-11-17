@@ -221,11 +221,12 @@ class Channel:
         self.reader = os.fdopen(req_fd, "rb")
         self.rep_fd = rep_fd
 
-    def send(self, header: dict, payload: bytes = b"") -> None:
-        header["nbytes"] = len(payload)
-        view = memoryview(json.dumps(header, separators=(",", ":")).encode() + b"\n" + payload)
-        while view:
-            view = view[os.write(self.rep_fd, view):]
+    def send(self, header: dict, buffers=()) -> None:
+        views = [memoryview(b).cast("B") for b in buffers]
+        header["nbytes"] = sum(v.nbytes for v in views)
+        for view in [memoryview(json.dumps(header, separators=(",", ":")).encode() + b"\n")] + views:
+            while view:
+                view = view[os.write(self.rep_fd, view):]
 
     def receive(self):
         line = self.reader.readline()
@@ -255,7 +256,8 @@ def load_policy():
     return func
 
 
-def tensor_bytes(value, name: str, shape_ok) -> tuple[list[int], bytes]:
+def tensor_bytes(value, name: str, shape_ok):
+    """Validate one output tensor and return (shape, buffer of little-endian int64) without copying."""
     if type(value) is not torch.Tensor:
         raise TypeError(f"{name} must be a plain torch.Tensor, got {type(value).__name__}")
     if value.dtype not in INT_DTYPES:
@@ -266,12 +268,12 @@ def tensor_bytes(value, name: str, shape_ok) -> tuple[list[int], bytes]:
         raise ValueError(f"{name} has shape {tuple(shape)}: {reason}")
     flat = value.detach().to(device="cpu", dtype=torch.int64).contiguous().reshape(-1)
     if HAVE_NUMPY:
-        return shape, flat.numpy().astype("<i8", copy=False).tobytes()
+        return shape, flat.numpy().astype("<i8", copy=False)
     values = flat.tolist()
     return shape, struct.pack(f"<{len(values)}q", *values)
 
 
-def run_call(func, header: dict, payload: bytes) -> tuple[dict, bytes]:
+def run_call(func, header: dict, payload: bytes) -> tuple[dict, list]:
     layers, experts = int(header["shape"][0]), int(header["shape"][1])
     replicas = int(header["num_replicas"])
     weight = torch.frombuffer(bytearray(payload), dtype=torch.int64).view(layers, experts)
@@ -279,7 +281,7 @@ def run_call(func, header: dict, payload: bytes) -> tuple[dict, bytes]:
         result = func(weight, replicas, int(header["num_groups"]), int(header["num_nodes"]),
                       int(header["num_gpus"]))
     except BaseException as exc:  # noqa: BLE001 - every policy failure is reported
-        return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}, b""
+        return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}, []
     try:
         if not isinstance(result, tuple) or len(result) != 3:
             raise TypeError("rebalance_experts must return (phy2log, log2phy, logcnt)")
@@ -295,8 +297,8 @@ def run_call(func, header: dict, payload: bytes) -> tuple[dict, bytes]:
             shapes[name] = shape
             chunks.append(data)
     except BaseException as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"invalid output: {exc}"}, b""
-    return {"ok": True, "shapes": shapes}, b"".join(chunks)
+        return {"ok": False, "error": f"invalid output: {exc}"}, []
+    return {"ok": True, "shapes": shapes}, chunks
 
 
 def serve(channel: Channel) -> None:
@@ -325,8 +327,8 @@ def serve(channel: Channel) -> None:
             if func is None:
                 channel.send({"ok": False, "error": "policy not loaded"})
             else:
-                reply, data = run_call(func, header, payload)
-                channel.send(reply, data)
+                reply, buffers = run_call(func, header, payload)
+                channel.send(reply, buffers)
         else:
             channel.send({"ok": False, "error": f"unknown command {cmd!r}"})
 
