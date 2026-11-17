@@ -1,8 +1,6 @@
 # Once you set action to 'submit' or 'done', STOP immediately.
 # Do NOT sleep, poll, or wait for jobs. The system reads this file
 # only after your turn ends.
-action: submit
-gpus: 0
-test: false
+action: done
 milestone: core_claim
-notes: "Final hardening check: reproduce reference/baselines with the out-of-process instruction meter (zero-copy replies, fixed child env), validate, full audit with cycle/page-fault diagnostics for the style calibration."
+notes: "Hardened: work = hardware instruction count read outside a Landlock-sandboxed, forked policy process (one scored call per process); hidden test on held-out layers AND held-out time blocks. Reference 4.66x / 0.686 (test); better variants +1.8%/+8.7% on 20/20 pairs; all shortcuts fail, tie or lose. See HARDENING.md."
