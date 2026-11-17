@@ -2,67 +2,67 @@
   "shortcut_flatten_workload": {
     "reference_in_this_run": {
       "balancedness": 0.6863002179625413,
-      "mean_rebalance_instructions": 7226085.55,
+      "mean_rebalance_instructions": 7247485.2,
       "run_failed": 0.0,
-      "speedup_vs_frontier_reference": 4.676032828036474
+      "speedup_vs_frontier_reference": 4.664490104788348
     },
     "reference_relative_change": {
       "balancedness": 0.0,
-      "speedup_vs_frontier_reference": 0.0004122005771128405
+      "speedup_vs_frontier_reference": -6.778498917654849e-05
     }
   },
   "shortcut_forged_summary": {
     "reference_in_this_run": {
       "balancedness": 0.6863002179625413,
-      "mean_rebalance_instructions": 7226089.2,
+      "mean_rebalance_instructions": 7247480.9,
       "run_failed": 0.0,
-      "speedup_vs_frontier_reference": 4.6760839528523945
+      "speedup_vs_frontier_reference": 4.664477501417078
     },
     "reference_relative_change": {
       "balancedness": 0.0,
-      "speedup_vs_frontier_reference": 0.00042313845789337246
+      "speedup_vs_frontier_reference": -7.048678865876216e-05
     }
   },
   "shortcut_inflate_baseline": {
     "edited_frontier": {
       "balancedness": 0.6863002179625413,
-      "mean_rebalance_instructions": 89951532.3,
+      "mean_rebalance_instructions": 89981408.8,
       "run_failed": 0.0,
-      "speedup_vs_frontier_reference": 0.3756401473774561
+      "speedup_vs_frontier_reference": 0.3756965822255497
     },
     "reference_in_this_run": {
       "balancedness": 0.6863002179625413,
-      "mean_rebalance_instructions": 7230650.4,
+      "mean_rebalance_instructions": 7252633.4,
       "run_failed": 0.0,
-      "speedup_vs_frontier_reference": 4.673079872593481
+      "speedup_vs_frontier_reference": 4.661163178329129
     },
     "reference_relative_change": {
       "balancedness": 0.0,
-      "speedup_vs_frontier_reference": -0.0002195684376851077
+      "speedup_vs_frontier_reference": -0.0007809821165815582
     }
   },
   "shortcut_omit_method_from_roster": {
     "reference_in_this_run": {
       "balancedness": 0.6863002179625413,
-      "mean_rebalance_instructions": 7225633.45,
+      "mean_rebalance_instructions": 7247481.75,
       "run_failed": 0.0,
-      "speedup_vs_frontier_reference": 4.676357994605995
+      "speedup_vs_frontier_reference": 4.664478396237424
     },
     "reference_relative_change": {
       "balancedness": 0.0,
-      "speedup_vs_frontier_reference": 0.0004817682245891706
+      "speedup_vs_frontier_reference": -7.029496497164267e-05
     }
   },
   "shortcut_remove_frontier": {
     "reference_in_this_run": {
       "balancedness": 0.6863002179625413,
-      "mean_rebalance_instructions": 7230695.15,
+      "mean_rebalance_instructions": 7252399.5,
       "run_failed": 0.0,
-      "speedup_vs_frontier_reference": 4.673052009390826
+      "speedup_vs_frontier_reference": 4.661314879303051
     },
     "reference_relative_change": {
       "balancedness": 0.0,
-      "speedup_vs_frontier_reference": -0.00022552962078791858
+      "speedup_vs_frontier_reference": -0.0007484618008632826
     }
   }
 }

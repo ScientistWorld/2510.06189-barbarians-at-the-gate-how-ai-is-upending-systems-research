@@ -5,4 +5,4 @@ action: submit
 gpus: 0
 test: false
 milestone: core_claim
-notes: "Hardening check (fork-server evaluator): reproduce reference/baselines with the out-of-process instruction meter and held-out time blocks, validate, then the full audit (variants, shortcuts, isolated kill case, disk-level shortcuts, repeat runs, calibration). Resumable after preemption."
+notes: "Final hardening check: reproduce reference/baselines with the out-of-process instruction meter (zero-copy replies, fixed child env), validate, full audit with cycle/page-fault diagnostics for the style calibration."

@@ -2,17 +2,17 @@
   "shortcut_kill_evaluator": {
     "case": {
       "balancedness": 0.6863002179625413,
-      "mean_rebalance_instructions": 7252347.7,
+      "mean_rebalance_instructions": 7250487.55,
       "run_failed": 0.0,
-      "speedup_vs_frontier_reference": 4.65909944582497
+      "speedup_vs_frontier_reference": 4.662579346129627
     },
     "case_failure": null,
     "evaluator_exit_code": 0,
     "reference_in_this_run": {
       "balancedness": 0.6863002179625413,
-      "mean_rebalance_instructions": 7248487.75,
+      "mean_rebalance_instructions": 7250746.65,
       "run_failed": 0.0,
-      "speedup_vs_frontier_reference": 4.66158050001533
+      "speedup_vs_frontier_reference": 4.662412732349433
     },
     "reference_unchanged": false
   }
