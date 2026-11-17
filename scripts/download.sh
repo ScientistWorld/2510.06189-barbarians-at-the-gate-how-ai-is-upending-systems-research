@@ -5,13 +5,14 @@
 # submitting compute jobs. Idempotent: skips work whose output exists.
 #
 # Estimated total download size: 0.23 GB (raw expert-load trace, deleted after extraction)
-# Estimated disk usage after extraction: ~1.5 MB (data/eplb_train_windows.json, tracked in git)
+# Estimated disk usage after extraction: ~1.2 MB (data/eplb_train_windows.json, tracked in git)
 #
 # Source: the expert-load trace released with the paper's EPLB case study,
 # https://huggingface.co/datasets/abmfy/eplb-openevolve (pinned revision).
-# Only the visible (even) MoE layers are extracted into data/. The raw file
-# also contains the held-out layers used by the hidden test, so it is removed
-# after extraction; do not keep or re-fetch it for method development.
+# Only the visible pairs (even MoE layers, time blocks 0 and 2 of 4) are
+# extracted into data/. The raw file also contains the held-out layers and time
+# blocks used by the hidden test, so it is removed after extraction; do not
+# keep or re-fetch it for method development.
 
 set -e
 

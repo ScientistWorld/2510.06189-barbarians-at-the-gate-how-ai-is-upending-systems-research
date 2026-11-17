@@ -1,7 +1,8 @@
-Train/Test Evaluation Design Notes (current, iteration 11)
+Train/Test Evaluation Design Notes (current, iteration 12)
 
-- Data: the paper's expert-load trace (abmfy/eplb-openevolve). Visible = even MoE layers (`data/eplb_train_windows.json`); hidden = odd layers, secretly relabelled, only in `eval/test/test_windows.json` (rebuilt by `eval/test/prepare_test_windows.py`). Four window offsets, 43 rebalances per method.
-- Interface: every `outputs/eplb/<name>.py` defines `rebalance_experts()`; `eval/{train,test}/evaluate.py` runs each in `harness.py` (sandboxed subprocess), streaming one window at a time and scoring on the next.
-- Scored: `speedup_vs_frontier_reference` (work of the frozen anchor in `eval/*/anchor_frontier_reference.py` / method work) and `balancedness` (next-window mean/max GPU load). Hard constraints: valid hierarchical placement, determinism, guards, balance within 0.005 of the anchor; any failure scores 0/0.
-- Work meter: bytecodes 1, C calls 1 (+2 per scanned Python element), torch kernels 20 (+0.06 per tensor element); calibrated to CPU time (Spearman 0.976). See `HARDENING.md`.
-- eval/train and eval/test share no code (duplicated harness/anchor), and neither imports method/.
+- Data: the paper's expert-load trace (abmfy/eplb-openevolve), cut into four equal time blocks. Visible = even MoE layers in blocks 0 and 2 (`data/eplb_train_windows.json`); hidden = odd layers in blocks 1 and 3, secretly relabelled, only in `eval/test/test_windows.json` (rebuilt by `eval/test/prepare_test_windows.py`). 20 rebalance pairs per slice (input window `[s, s+100)`, scored on `[s+100, s+200)`, `s` every 10 steps).
+- Interface: every `outputs/eplb/<name>.py` defines `rebalance_experts()`. `eval/{train,test}/evaluate.py` starts one fork server per policy (`harness.py`, imports torch, never runs policy code); each pair runs in a freshly forked child that seals itself with Landlock (no workspace access, no writes, no exec, no TCP, no outside signals), imports the policy, warms up on a synthetic window, re-imports, and serves one scored call. Everything the child started is killed before the next pair.
+- Work measure: retired user-space instructions of the child's process tree, read by the evaluator from a hardware counter (perf_event_open, inherited by threads/processes) between sending the window and receiving the placement. Nothing in the policy process takes part.
+- Scored: `speedup_vs_frontier_reference` (instructions of the frozen anchor in `eval/*/anchor_frontier_reference.py` / method instructions, same pairs, same run) and `balancedness` (next-window mean/max GPU load). Hard constraints: valid hierarchical placement, instruction cap, balance within 0.005 of the anchor; any failure scores 0/0. Every method is written as failed before evaluation starts.
+- eval/train and eval/test share no code (duplicated harness/anchor/evaluator), and neither imports method/.
+- See `HARDENING.md` for the audit of this design.
