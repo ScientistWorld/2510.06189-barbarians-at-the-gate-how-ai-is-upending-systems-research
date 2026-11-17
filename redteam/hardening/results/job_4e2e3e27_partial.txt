@@ -1,0 +1,49 @@
+[hive] host: node
+[hive] started_at: 2026-11-16 19:03:09 EST
+model name	: AMD EPYC 9654 96-Core Processor
+perf_event_paranoid: 2
+landlock abi 6
+[train] running frozen anchor frontier_reference_zigzag
+[train] evolved_zigzag: speedup=4.6835 balancedness=0.6810 instr=7.21e+06 (139s) ok
+[train] frontier_reference_zigzag: speedup=0.9991 balancedness=0.6810 instr=3.38e+07 (142s) ok
+[train] greedy_deepseek: speedup=0.0253 balancedness=0.6817 instr=1.336e+09 (143s) ok
+[train] wrote scoring/scores_train.json (3 methods, 0 failed)
+[test] running frozen anchor frontier_reference_zigzag
+[test] evolved_zigzag: speedup=4.6772 balancedness=0.6863 instr=7.221e+06 (123s) ok
+[test] frontier_reference_zigzag: speedup=0.9990 balancedness=0.6863 instr=3.381e+07 (133s) ok
+[test] greedy_deepseek: speedup=0.0250 balancedness=0.6869 instr=1.352e+09 (147s) ok
+[test] wrote scoring/scores_test.json (3 methods, 0 failed)
+[test] running frozen anchor frontier_reference_zigzag
+[hive] host: node
+[hive] started_at: 2026-11-16 19:26:22 EST
+model name	: Intel(R) Xeon(R) Platinum 8260 CPU @ 2.40GHz
+perf_event_paranoid: 2
+landlock abi 6
+[train] running frozen anchor frontier_reference_zigzag
+[train] evolved_zigzag: speedup=4.6775 balancedness=0.6810 instr=7.218e+06 (309s) ok
+[train] frontier_reference_zigzag: speedup=0.9990 balancedness=0.6810 instr=3.379e+07 (284s) ok
+[train] greedy_deepseek: speedup=0.0253 balancedness=0.6817 instr=1.336e+09 (228s) ok
+[train] wrote scoring/scores_train.json (3 methods, 0 failed)
+[test] running frozen anchor frontier_reference_zigzag
+[test] evolved_zigzag: speedup=4.6720 balancedness=0.6863 instr=7.229e+06 (204s) ok
+[test] frontier_reference_zigzag: speedup=0.9990 balancedness=0.6863 instr=3.38e+07 (194s) ok
+[test] greedy_deepseek: speedup=0.0250 balancedness=0.6869 instr=1.352e+09 (226s) ok
+[test] wrote scoring/scores_test.json (3 methods, 0 failed)
+[test] running frozen anchor frontier_reference_zigzag
+[test] better_compact_log2phy: speedup=4.7643 balancedness=0.6863 instr=7.088e+06 (203s) ok
+[test] better_lean_replication: speedup=5.0711 balancedness=0.6863 instr=6.659e+06 (216s) ok
+[test] brute_force_sampled_placements: speedup=0.0623 balancedness=0.6860 instr=5.417e+08 (212s) ok
+[test] evolved_zigzag: speedup=4.6745 balancedness=0.6863 instr=7.224e+06 (196s) ok
+[test] frontier_reference_zigzag: speedup=0.9997 balancedness=0.6863 instr=3.378e+07 (188s) ok
+[hive] host: node
+[hive] started_at: 2026-11-16 20:20:38 EST
+model name	: AMD EPYC 9654 96-Core Processor
+perf_event_paranoid: 2
+landlock abi 6
+[train] running frozen anchor frontier_reference_zigzag
+[hive] host: node
+[hive] started_at: 2026-11-16 20:21:25 EST
+model name	: AMD EPYC 9654 96-Core Processor
+perf_event_paranoid: 2
+landlock abi 6
+[train] running frozen anchor frontier_reference_zigzag

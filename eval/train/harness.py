@@ -1,68 +1,77 @@
 #!/usr/bin/env python3
 """Sandboxed runner for one EPLB policy file (started by evaluate.py).
 
-This process does not measure anything.  The evaluator measures the work of
-every rebalance from outside, with the CPU's hardware counter of retired
-user-space instructions attached to this process and to every thread or
-process it creates.  Nothing in this process takes part in the measurement,
-so nothing in it can switch off, reset or forge the measurement.
+This file runs as a fork server ("zygote") for one policy file.  The zygote
+imports torch once and reads the policy file's bytes, but never executes
+policy code.  For every rebalance pair the evaluator asks it to fork a fresh
+child; the child serves exactly that pair and exits.
 
-This runner only:
-1. waits until the evaluator has attached its counters (first stdin line),
-   before it imports anything or creates any thread;
-2. reads the policy file, imports torch, and seals itself into an OS-level
-   sandbox (Linux Landlock): read-only access to the Python and torch
-   installation and system libraries, no access at all to the workspace (and
-   so to any data or evaluator file), no file writes, no exec, no TCP, and no
-   signals to processes outside the sandbox.  If the kernel has no Landlock,
-   an in-process audit hook blocks the same file and process operations;
+Nothing in these processes measures anything.  The evaluator measures the
+work of every rebalance from outside, with the CPU's hardware counter of
+retired user-space instructions attached to the child (and inherited by every
+thread or process the child creates).  No state in the child takes part in
+the measurement, so nothing the policy does can switch it off or forge it.
+
+A child:
+1. waits until the evaluator has attached its counters (``start`` line);
+2. seals itself into an OS-level sandbox (Linux Landlock): read-only access
+   to the Python and torch installation and system libraries, no access at
+   all to the workspace (and so to any data or evaluator file), no file
+   writes, no exec, no TCP, and no signals or abstract-socket connections to
+   processes outside its own sandbox.  If the kernel has no Landlock, an
+   in-process audit hook blocks the same file and process operations;
 3. serves requests: ``load`` (execute the policy file in a fresh module),
    ``call`` (one rebalance on the window it is sent), ``exit``.
 
-Protocol: requests on stdin, replies on the file descriptor given by
-``--reply-fd``.  Every message is one JSON header line, followed by a raw
-little-endian int64 payload of ``nbytes`` bytes.  Anything the policy prints
-goes to stderr.
+The zygote is a child subreaper: after each child has finished, it kills
+every process that child left behind, so no helper process outlives the pair
+it was started for.
+
+Protocol (child): requests on the request pipe, replies on the reply pipe.
+Every message is one JSON header line, followed by a raw little-endian int64
+payload of ``nbytes`` bytes.  Control (zygote): JSON messages on a
+SOCK_SEQPACKET socket; ``fork`` carries the child's two pipe ends.  Anything
+the policy prints goes to stderr.
 """
 
+import argparse
+import ctypes
+import gc
+import json
+import os
+import platform
+import random
+import signal
+import socket
+import struct
 import sys
-
-sys.stdin.buffer.readline()  # the evaluator has attached its counters
-
-import argparse  # noqa: E402
-import ctypes  # noqa: E402
-import gc  # noqa: E402
-import json  # noqa: E402
-import os  # noqa: E402
-import platform  # noqa: E402
-import random  # noqa: E402
-import struct  # noqa: E402
-import types  # noqa: E402
+import types
 
 MAX_POLICY_BYTES = 64 * 1024
-STDIN = sys.stdin.buffer
+PR_SET_CHILD_SUBREAPER = 36
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy", required=True)
-    parser.add_argument("--reply-fd", type=int, required=True)
+    parser.add_argument("--control-fd", type=int, required=True)
     parser.add_argument("--workspace", required=True)
     return parser.parse_args()
 
 
 ARGS = parse_args()
-REPLY_FD = ARGS.reply_fd
-os.dup2(2, 1)  # policy prints never reach the protocol channel
+os.dup2(2, 1)  # policy prints never reach a protocol channel
 sys.stdout = sys.stderr
 POLICY_PATH = os.path.abspath(ARGS.policy)
 with open(POLICY_PATH, "rb") as _f:
     POLICY_BYTES = _f.read(MAX_POLICY_BYTES + 1)
 WORKSPACE = os.path.realpath(ARGS.workspace)
+LIBC = ctypes.CDLL(None, use_errno=True)
+LIBC.syscall.restype = ctypes.c_long
 
 import torch  # noqa: E402
 
-try:  # loaded before the sandbox so tensor -> bytes conversion is available
+try:  # loaded before forking so tensor -> bytes conversion is available
     import numpy  # noqa: E402,F401
     HAVE_NUMPY = True
 except Exception:  # noqa: BLE001
@@ -73,7 +82,7 @@ INT_DTYPES = (torch.int64, torch.int32, torch.int16, torch.int8, torch.uint8)
 
 
 # ---------------------------------------------------------------------------
-# OS-level sandbox
+# OS-level sandbox (applied in each child)
 # ---------------------------------------------------------------------------
 SYS_LANDLOCK_CREATE_RULESET = 444
 SYS_LANDLOCK_ADD_RULE = 445
@@ -118,10 +127,11 @@ def _readable_paths() -> list[str]:
     return sorted(set(keep))
 
 
+READABLE = _readable_paths()
+
+
 def _landlock(paths: list[str]) -> dict:
-    libc = ctypes.CDLL(None, use_errno=True)
-    syscall = libc.syscall
-    syscall.restype = ctypes.c_long
+    syscall = LIBC.syscall
     abi = syscall(ctypes.c_long(SYS_LANDLOCK_CREATE_RULESET), None, ctypes.c_size_t(0),
                   ctypes.c_uint32(LANDLOCK_CREATE_RULESET_VERSION))
     if abi < 1:
@@ -139,7 +149,6 @@ def _landlock(paths: list[str]) -> dict:
                       ctypes.c_size_t(size), ctypes.c_uint32(0))
     if ruleset < 0:
         raise OSError(ctypes.get_errno(), "landlock_create_ruleset failed")
-    granted = []
     for path in paths:
         try:
             fd = os.open(path, os.O_PATH | os.O_CLOEXEC)
@@ -147,17 +156,15 @@ def _landlock(paths: list[str]) -> dict:
             continue
         rights = ACCESS_FS_READ_FILE | (ACCESS_FS_READ_DIR if os.path.isdir(path) else 0)
         rule = _PathBeneathAttr(rights, fd)
-        rc = syscall(ctypes.c_long(SYS_LANDLOCK_ADD_RULE), ctypes.c_int(ruleset),
-                     ctypes.c_int(LANDLOCK_RULE_PATH_BENEATH), ctypes.byref(rule), ctypes.c_uint32(0))
+        syscall(ctypes.c_long(SYS_LANDLOCK_ADD_RULE), ctypes.c_int(ruleset),
+                ctypes.c_int(LANDLOCK_RULE_PATH_BENEATH), ctypes.byref(rule), ctypes.c_uint32(0))
         os.close(fd)
-        if rc == 0:
-            granted.append(path)
-    if libc.prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) != 0:
+    if LIBC.prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) != 0:
         raise OSError(ctypes.get_errno(), "prctl(PR_SET_NO_NEW_PRIVS) failed")
     if syscall(ctypes.c_long(SYS_LANDLOCK_RESTRICT_SELF), ctypes.c_int(ruleset), ctypes.c_uint32(0)) != 0:
         raise OSError(ctypes.get_errno(), "landlock_restrict_self failed")
     os.close(ruleset)
-    return {"mode": "landlock", "abi": abi, "readable": granted}
+    return {"mode": "landlock", "abi": abi}
 
 
 _FALLBACK_BLOCKED = frozenset({
@@ -169,7 +176,7 @@ _FALLBACK_BLOCKED = frozenset({
 
 
 def _fallback_hook(paths: list[str]) -> dict:
-    allowed = tuple(p.rstrip("/") + "/" for p in paths) + tuple(paths)
+    allowed = tuple(p.rstrip("/") + "/" for p in paths)
 
     def hook(event, args):
         if event == "open":
@@ -190,49 +197,46 @@ def _fallback_hook(paths: list[str]) -> dict:
 
 
 def apply_sandbox() -> dict:
-    paths = _readable_paths()
     info = None
     if platform.system() == "Linux":
         try:
-            info = _landlock(paths)
+            info = _landlock(READABLE)
         except OSError as exc:
             info = {"mode": "unavailable", "error": str(exc)}
     if info is None or info.get("mode") != "landlock":
-        info = _fallback_hook(paths)
-    probe = os.path.join(WORKSPACE, "eval")
+        info = _fallback_hook(READABLE)
     try:
-        os.listdir(probe)
+        os.listdir(os.path.join(WORKSPACE, "eval"))
         info["workspace_readable"] = True
     except OSError:
         info["workspace_readable"] = False
     return info
 
 
-SANDBOX = apply_sandbox()
-
-
 # ---------------------------------------------------------------------------
-# Protocol
+# Child: one rebalance pair
 # ---------------------------------------------------------------------------
-def send(header: dict, payload: bytes = b"") -> None:
-    header["nbytes"] = len(payload)
-    data = json.dumps(header, separators=(",", ":")).encode() + b"\n" + payload
-    view = memoryview(data)
-    while view:
-        written = os.write(REPLY_FD, view)
-        view = view[written:]
+class Channel:
+    def __init__(self, req_fd: int, rep_fd: int):
+        self.reader = os.fdopen(req_fd, "rb")
+        self.rep_fd = rep_fd
 
+    def send(self, header: dict, payload: bytes = b"") -> None:
+        header["nbytes"] = len(payload)
+        view = memoryview(json.dumps(header, separators=(",", ":")).encode() + b"\n" + payload)
+        while view:
+            view = view[os.write(self.rep_fd, view):]
 
-def receive():
-    line = STDIN.readline()
-    if not line:
-        return None, b""
-    header = json.loads(line)
-    n = int(header.get("nbytes", 0))
-    payload = STDIN.read(n) if n else b""
-    if len(payload) != n:
-        return None, b""
-    return header, payload
+    def receive(self):
+        line = self.reader.readline()
+        if not line:
+            return None, b""
+        header = json.loads(line)
+        n = int(header.get("nbytes", 0))
+        payload = self.reader.read(n) if n else b""
+        if len(payload) != n:
+            return None, b""
+        return header, payload
 
 
 def load_policy():
@@ -295,14 +299,18 @@ def run_call(func, header: dict, payload: bytes) -> tuple[dict, bytes]:
     return {"ok": True, "shapes": shapes}, b"".join(chunks)
 
 
-def main() -> None:
-    send({"ok": True, "ready": True, "sandbox": {k: v for k, v in SANDBOX.items() if k != "readable"},
-          "numpy": HAVE_NUMPY, "hash_randomization": sys.flags.hash_randomization})
+def serve(channel: Channel) -> None:
+    line = channel.reader.readline()  # the evaluator has attached its counters
+    if line != b"start\n":
+        return
+    sandbox = apply_sandbox()
+    channel.send({"ok": True, "ready": True, "sandbox": sandbox, "numpy": HAVE_NUMPY,
+                  "hash_randomization": sys.flags.hash_randomization})
     func = None
     while True:
-        header, payload = receive()
+        header, payload = channel.receive()
         if header is None or header.get("cmd") == "exit":
-            break
+            return
         cmd = header.get("cmd")
         if cmd == "load":
             try:
@@ -312,16 +320,111 @@ def main() -> None:
                 func = None
                 reply = {"ok": False, "error": f"load failed: {type(exc).__name__}: {exc}"}
             gc.collect()  # start every measured call from a collected heap
-            send(reply)
+            channel.send(reply)
         elif cmd == "call":
             if func is None:
-                send({"ok": False, "error": "policy not loaded"})
+                channel.send({"ok": False, "error": "policy not loaded"})
             else:
                 reply, data = run_call(func, header, payload)
-                send(reply, data)
+                channel.send(reply, data)
         else:
-            send({"ok": False, "error": f"unknown command {cmd!r}"})
+            channel.send({"ok": False, "error": f"unknown command {cmd!r}"})
+
+
+# ---------------------------------------------------------------------------
+# Zygote
+# ---------------------------------------------------------------------------
+def _descendants() -> list[int]:
+    me = os.getpid()
+    parent_of = {}
+    for entry in os.listdir("/proc"):
+        if not entry.isdigit():
+            continue
+        try:
+            with open(f"/proc/{entry}/stat", "rb") as f:
+                stat = f.read()
+        except OSError:
+            continue
+        fields = stat[stat.rfind(b")") + 2:].split()
+        parent_of[int(entry)] = int(fields[1])
+    found, frontier = [], [me]
+    while frontier:
+        nxt = [pid for pid, ppid in parent_of.items() if ppid in frontier and pid != me]
+        found.extend(nxt)
+        frontier = nxt
+    return found
+
+
+def kill_leftovers() -> int:
+    """Kill every process below the zygote (it is a subreaper, so orphans land here)."""
+    killed = 0
+    for _ in range(20):
+        pids = _descendants()
+        if not pids:
+            break
+        for pid in pids:
+            try:
+                os.kill(pid, signal.SIGKILL)
+                killed += 1
+            except OSError:
+                pass
+        while True:
+            try:
+                pid, _ = os.waitpid(-1, os.WNOHANG)
+            except ChildProcessError:
+                break
+            if pid == 0:
+                break
+    while True:  # reap anything already dead
+        try:
+            if os.waitpid(-1, os.WNOHANG)[0] == 0:
+                break
+        except ChildProcessError:
+            break
+    return killed
+
+
+def zygote() -> None:
+    LIBC.prctl(PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0)
+    control = socket.socket(fileno=ARGS.control_fd)
+    control.send(json.dumps({"ok": True, "ready": True}).encode())
+    while True:
+        try:
+            msg, fds, _, _ = socket.recv_fds(control, 1 << 16, 4)
+        except OSError:
+            break
+        if not msg:
+            break
+        try:
+            cmd = json.loads(msg).get("cmd")
+        except ValueError:
+            cmd = None
+        if cmd == "fork" and len(fds) == 2:
+            pid = os.fork()
+            if pid == 0:
+                code = 0
+                try:
+                    control.close()
+                    serve(Channel(fds[0], fds[1]))
+                except BaseException:  # noqa: BLE001
+                    code = 1
+                finally:
+                    os._exit(code)
+            for fd in fds:
+                os.close(fd)
+            control.send(json.dumps({"ok": True, "pid": pid}).encode())
+        elif cmd == "cleanup":
+            for fd in fds:
+                os.close(fd)
+            control.send(json.dumps({"ok": True, "killed": kill_leftovers()}).encode())
+        else:
+            for fd in fds:
+                os.close(fd)
+            if cmd == "exit":
+                break
+            control.send(json.dumps({"ok": False, "error": f"unknown command {cmd!r}"}).encode())
+    kill_leftovers()
 
 
 if __name__ == "__main__":
-    main()
+    zygote()

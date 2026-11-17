@@ -9,12 +9,15 @@ paper's interface::
 
 The visible slice holds 20 rebalance pairs of the visible (even) MoE layers
 in time blocks 0 and 2 of the trace (data/eplb_train_windows.json); the
-hidden test uses other layers in other time blocks with the same protocol.  For each pair,
-the evaluator starts a fresh sandboxed policy process (harness.py), lets it
-import the policy and run one warm-up rebalance on a synthetic window,
-re-imports the policy, and then sends it the pair's input window only.  The
-policy's placement is scored on the following window, which never enters the
-policy process.  One scored rebalance per process: nothing a policy keeps in
+hidden test uses other layers in other time blocks with the same protocol.
+Each policy gets
+a fork server (harness.py, which imports torch once and never runs policy
+code).  For each pair, the evaluator has it fork a fresh sandboxed policy
+process, which imports the policy, runs one warm-up rebalance on a synthetic
+window, re-imports the policy, and is then sent the pair's input window only.
+The placement is scored on the following window, which never enters any
+policy process.  One scored rebalance per process, and every process the
+policy started is killed before the next pair: nothing a policy keeps in
 memory can carry over between pairs.
 
 Rebalance work is measured here, outside the policy process: a hardware
@@ -51,6 +54,8 @@ import json
 import os
 import platform
 import select
+import signal
+import socket
 import struct
 import subprocess
 import sys
@@ -177,11 +182,67 @@ def _no_aslr() -> None:
 
 
 # ---------------------------------------------------------------------------
-# One sandboxed policy process
+# Process tree hygiene: the evaluator adopts orphans and kills them per policy
 # ---------------------------------------------------------------------------
-class Session:
+PR_SET_CHILD_SUBREAPER = 36
+
+
+def _descendants(root: int) -> list[int]:
+    parent_of = {}
+    for entry in os.listdir("/proc"):
+        if not entry.isdigit():
+            continue
+        try:
+            stat = Path(f"/proc/{entry}/stat").read_bytes()
+        except OSError:
+            continue
+        parent_of[int(entry)] = int(stat[stat.rfind(b")") + 2:].split()[1])
+    found, frontier = [], {root}
+    while frontier:
+        nxt = {pid for pid, ppid in parent_of.items() if ppid in frontier and pid != root}
+        found.extend(nxt)
+        frontier = nxt
+    return found
+
+
+def kill_descendants() -> None:
+    for _ in range(20):
+        pids = _descendants(os.getpid())
+        if not pids:
+            return
+        for pid in pids:
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except OSError:
+                pass
+        while True:
+            try:
+                if os.waitpid(-1, os.WNOHANG)[0] == 0:
+                    break
+            except ChildProcessError:
+                break
+        time.sleep(0.05)
+
+
+def _process_gone(pid: int) -> bool:
+    try:
+        stat = Path(f"/proc/{pid}/stat").read_bytes()
+    except OSError:
+        return True
+    return stat[stat.rfind(b")") + 2:stat.rfind(b")") + 3] in (b"Z", b"X")
+
+
+# ---------------------------------------------------------------------------
+# Policy processes: one fork server per policy, one forked child per pair
+# ---------------------------------------------------------------------------
+class Zygote:
+    """Fork server for one policy file (imports torch once, never runs policy code)."""
+
+    START_TIMEOUT_S = 1800.0  # torch import only; no policy code runs in the zygote
+    CONTROL_TIMEOUT_S = 300.0
+
     def __init__(self, policy_path: Path, log, workdir: Path):
-        read_fd, write_fd = os.pipe()
+        parent, child = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
         env = {k: v for k, v in os.environ.items() if not k.startswith(("PYTHON", "ATEN_", "OMP_", "MKL_"))}
         env.update({
             "PYTHONHASHSEED": "0",
@@ -193,16 +254,84 @@ class Session:
         })
         self.proc = subprocess.Popen(
             [sys.executable, "-s", "-B", "-P", str(HARNESS_PATH), "--policy", str(policy_path),
-             "--reply-fd", str(write_fd), "--workspace", str(ROOT)],
-            stdin=subprocess.PIPE, stdout=log, stderr=log, pass_fds=(write_fd,), env=env,
+             "--control-fd", str(child.fileno()), "--workspace", str(ROOT)],
+            stdin=subprocess.DEVNULL, stdout=log, stderr=log, pass_fds=(child.fileno(),), env=env,
             cwd=str(workdir), preexec_fn=_no_aslr,
         )
-        os.close(write_fd)
-        self.fd = read_fd
+        child.close()
+        self.sock = parent
+        reply = self._recv(self.START_TIMEOUT_S, "policy server start")
+        if not reply.get("ok"):
+            raise HarnessError(f"policy server failed to start: {reply.get('error')}")
+
+    def _recv(self, timeout: float, what: str) -> dict:
+        ready, _, _ = select.select([self.sock], [], [], timeout)
+        if not ready:
+            raise HarnessError(f"policy server did not answer during {what}")
+        data = self.sock.recv(1 << 16)
+        if not data:
+            raise HarnessError(f"policy server exited during {what}")
+        try:
+            reply = json.loads(data)
+        except ValueError as exc:
+            raise HarnessError(f"malformed policy server reply during {what}") from exc
+        if not isinstance(reply, dict):
+            raise HarnessError(f"malformed policy server reply during {what}")
+        return reply
+
+    def fork(self) -> "Session":
+        req_r, req_w = os.pipe()
+        rep_r, rep_w = os.pipe()
+        try:
+            socket.send_fds(self.sock, [b'{"cmd":"fork"}'], [req_r, rep_w])
+        except OSError as exc:
+            for fd in (req_r, req_w, rep_r, rep_w):
+                os.close(fd)
+            raise HarnessError(f"policy server died ({exc})") from exc
+        os.close(req_r)
+        os.close(rep_w)
+        try:
+            reply = self._recv(self.CONTROL_TIMEOUT_S, "fork")
+            pid = reply.get("pid")
+            if not reply.get("ok") or not isinstance(pid, int):
+                raise HarnessError(f"policy server could not fork: {reply.get('error')}")
+        except HarnessError:
+            os.close(req_w)
+            os.close(rep_r)
+            raise
+        return Session(pid, req_w, rep_r)
+
+    def cleanup(self) -> None:
+        """Kill everything the last child left behind."""
+        try:
+            self.sock.send(b'{"cmd":"cleanup"}')
+            self._recv(self.CONTROL_TIMEOUT_S, "cleanup")
+        except (OSError, HarnessError):
+            pass
+
+    def close(self) -> None:
+        try:
+            self.sock.send(b'{"cmd":"exit"}')
+            self.proc.wait(timeout=60)
+        except Exception:  # noqa: BLE001
+            pass
+        if self.proc.poll() is None:
+            self.proc.kill()
+            self.proc.wait()
+        self.sock.close()
+
+
+class Session:
+    """One forked policy process serving one rebalance pair; its work is counted."""
+
+    def __init__(self, pid: int, req_fd: int, rep_fd: int):
+        self.pid = pid
+        self.req_fd = req_fd
+        self.fd = rep_fd
         self.buffer = bytearray()
         self.counters = None
         try:
-            self.counters = Counters(self.proc.pid)
+            self.counters = Counters(pid)
         except MeasurementUnavailable:
             self.close()
             raise
@@ -212,10 +341,11 @@ class Session:
             raise HarnessError(f"policy process failed to start: {self.ready.get('error')}")
 
     def _write(self, data: bytes) -> None:
+        view = memoryview(data)
         try:
-            self.proc.stdin.write(data)
-            self.proc.stdin.flush()
-        except (BrokenPipeError, OSError) as exc:
+            while view:
+                view = view[os.write(self.req_fd, view):]
+        except OSError as exc:
             raise HarnessError(f"policy process died ({exc})") from exc
 
     def send(self, header: dict, payload: bytes = b"") -> None:
@@ -223,9 +353,10 @@ class Session:
         self._write(json.dumps(header, separators=(",", ":")).encode() + b"\n" + payload)
 
     def kill(self) -> None:
-        if self.proc.poll() is None:
-            self.proc.kill()
-            self.proc.wait()
+        try:
+            os.kill(self.pid, signal.SIGKILL)
+        except OSError:
+            pass
 
     def receive(self, cap: float, what: str) -> tuple[dict, bytes]:
         start = self.counters.instructions()
@@ -256,6 +387,8 @@ class Session:
                     self.kill()
                     raise HarnessError(f"policy process exited unexpectedly during {what}")
                 self.buffer += chunk
+            elif _process_gone(self.pid):
+                raise HarnessError(f"policy process exited unexpectedly during {what}")
             value = self.counters.instructions()
             if value - start > cap:
                 self.kill()
@@ -275,18 +408,18 @@ class Session:
 
     def close(self) -> None:
         try:
-            if self.proc.poll() is None:
-                self.proc.stdin.write(b'{"cmd":"exit"}\n')
-                self.proc.stdin.flush()
-                self.proc.wait(timeout=30)
-        except Exception:  # noqa: BLE001
+            self._write(b'{"cmd":"exit"}\n')
+        except HarnessError:
             pass
+        deadline = time.monotonic() + 30.0
+        while not _process_gone(self.pid) and time.monotonic() < deadline:
+            time.sleep(0.01)
         self.kill()
-        try:
-            self.proc.stdin.close()
-        except Exception:  # noqa: BLE001
-            pass
-        os.close(self.fd)
+        for fd in (self.req_fd, self.fd):
+            try:
+                os.close(fd)
+            except OSError:
+                pass
         if self.counters is not None:
             self.counters.close()
 
@@ -417,45 +550,54 @@ def run_policy(policy_path: Path, workload: dict, log_dir: Path) -> dict:
     policy_path = policy_path.resolve()
     workdir = Path(tempfile.mkdtemp(prefix="eplb_policy_"))
     with (log_dir.resolve() / f"{policy_path.stem}.log").open("wb") as log:
-        for index, pair in enumerate(pairs):
-            session = None
-            try:
-                session = Session(policy_path, log, workdir)
-                if record["sandbox"] is None:
-                    record["sandbox"] = session.ready.get("sandbox")
-                session.load()
-                session.send({"cmd": "call", "shape": shape, **cfg}, warm)
-                session.receive(CALL_CAP, "warm-up rebalance")  # result unscored
-                session.load()  # fresh module for the scored call
-                request = int64_bytes(pair["load"])
-                before_instr = session.counters.instructions()
-                before_cpu = session.counters.cpu_ns()
-                session.send({"cmd": "call", "shape": shape, **cfg}, request)
-                reply, payload = session.receive(CALL_CAP, f"rebalance of pair {index}")
-                if not reply.get("ok"):
-                    raise HarnessError(f"pair {index} (start {pair['start']}): {reply.get('error', 'call failed')}")
-                phy2log, log2phy, width, logcnt = decode(reply, payload, cfg, num_layers, num_experts)
-                reason = check_placement(phy2log, log2phy, width, logcnt, cfg, num_layers, num_experts)
-                if reason is not None:
-                    raise HarnessError(f"pair {index} (start {pair['start']}): invalid placement: {reason}")
-                # The policy process is idle again; read the counters once it is.
-                instructions = session.counters.instructions() - before_instr
-                cpu_ns = session.counters.cpu_ns() - before_cpu
-                if instructions <= 0 or instructions > CALL_CAP:
-                    raise HarnessError(f"pair {index}: impossible instruction count {instructions}")
-                record["multiplexed"] |= session.counters.multiplexed
-                record["valid"] += 1
-                record["calls"].append({
-                    "pair": index, "start": pair["start"], "instructions": instructions,
-                    "cpu_ns": cpu_ns,
-                    "balancedness": balancedness(phy2log, logcnt, pair["next_load"], cfg, num_layers, num_experts),
-                })
-            except HarnessError as exc:
-                record["failure"] = str(exc)
-                break
-            finally:
-                if session is not None:
-                    session.close()
+        zygote = None
+        try:
+            zygote = Zygote(policy_path, log, workdir)
+            for index, pair in enumerate(pairs):
+                session = None
+                try:
+                    session = zygote.fork()
+                    if record["sandbox"] is None:
+                        record["sandbox"] = session.ready.get("sandbox")
+                    session.load()
+                    session.send({"cmd": "call", "shape": shape, **cfg}, warm)
+                    session.receive(CALL_CAP, "warm-up rebalance")  # result unscored
+                    session.load()  # fresh module for the scored call
+                    request = int64_bytes(pair["load"])
+                    before_instr = session.counters.instructions()
+                    before_cpu = session.counters.cpu_ns()
+                    session.send({"cmd": "call", "shape": shape, **cfg}, request)
+                    reply, payload = session.receive(CALL_CAP, f"rebalance of pair {index}")
+                    if not reply.get("ok"):
+                        raise HarnessError(
+                            f"pair {index} (start {pair['start']}): {reply.get('error', 'call failed')}")
+                    phy2log, log2phy, width, logcnt = decode(reply, payload, cfg, num_layers, num_experts)
+                    reason = check_placement(phy2log, log2phy, width, logcnt, cfg, num_layers, num_experts)
+                    if reason is not None:
+                        raise HarnessError(f"pair {index} (start {pair['start']}): invalid placement: {reason}")
+                    # The policy process is idle again; read the counters once it is.
+                    instructions = session.counters.instructions() - before_instr
+                    cpu_ns = session.counters.cpu_ns() - before_cpu
+                    if instructions <= 0 or instructions > CALL_CAP:
+                        raise HarnessError(f"pair {index}: impossible instruction count {instructions}")
+                    record["multiplexed"] |= session.counters.multiplexed
+                    record["valid"] += 1
+                    record["calls"].append({
+                        "pair": index, "start": pair["start"], "instructions": instructions,
+                        "cpu_ns": cpu_ns,
+                        "balancedness": balancedness(phy2log, logcnt, pair["next_load"], cfg,
+                                                     num_layers, num_experts),
+                    })
+                finally:
+                    if session is not None:
+                        session.close()
+                    zygote.cleanup()
+        except HarnessError as exc:
+            record["failure"] = str(exc)
+        finally:
+            if zygote is not None:
+                zygote.close()
+            kill_descendants()
     return record
 
 
@@ -528,6 +670,7 @@ def main() -> None:
     parser.add_argument("--details", default=None, help="optional per-call record dump (JSON)")
     parser.add_argument("--log-dir", default=None)
     args = parser.parse_args()
+    _LIBC.prctl(PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0)  # adopt anything a policy leaves behind
 
     workload = json.loads(WINDOWS_PATH.read_text())
     total = len(workload["pairs"])
