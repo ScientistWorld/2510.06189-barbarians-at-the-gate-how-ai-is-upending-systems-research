@@ -17,7 +17,7 @@ The paper proposes AI-Driven Research for Systems (ADRS), a generate-evaluate-re
 
 ## Reproduced Here
 
-The evaluator runs each policy itself and measures its rebalance work deterministically (no wall-clock). The reproduced evolved policy keeps the reference's next-window balance and needs several times less work than the frontier reference. The greedy initial program needs tens of times more. See `HARDENING.md` for the measured numbers.
+The evaluator runs each policy itself in a sandboxed process and counts the CPU instructions of each rebalance with a hardware counter (deterministic, no wall-clock). On the hidden test, the reproduced evolved policy keeps the frontier reference's next-window balance (0.686) with 4.66x fewer instructions (paper: 5.3x less time). The greedy initial program needs about 40x more instructions than the frontier reference. See `HARDENING.md` for the measured numbers.
 
 ---
 
@@ -80,10 +80,12 @@ The paper's evolved code is not released, and its unspecified "subtle enhancemen
 
 ## Data
 
-The workload is the expert-load trace released with the paper's EPLB case study (Hugging Face `abmfy/eplb-openevolve`, `expert-load.json`): 1174 recorded steps of a 58-layer, 256-expert MoE model serving ShareGPT and GSM8K requests. Consecutive steps are summed into 100-step windows, as in the paper's evaluator. Windows start at four offsets (0, 25, 50, 75 steps), giving four sequences of 11-12 windows and 43 rebalances per method.
+The workload is the expert-load trace released with the paper's EPLB case study (Hugging Face `abmfy/eplb-openevolve`, `expert-load.json`): 1174 recorded steps of a 58-layer, 256-expert MoE model serving ShareGPT and GSM8K requests. Consecutive steps are summed into 100-step windows, as in the paper's evaluator. A rebalance pair is an input window (steps `[s, s+100)`) and the window that follows it (`[s+100, s+200)`), on which the placement is scored.
 
-- Visible (train): the 29 even MoE layers, in `data/eplb_train_windows.json` (expert ids relabelled within groups; `scripts/download.sh` rebuilds it).
-- Hidden (test): the 29 held-out layers, relabelled with a secret permutation, used only by the hidden test. Do not fetch the raw trace to read them.
+The trace is cut into four equal time blocks. Each slice holds 20 pairs, 10 per block, starting every 10 steps:
+
+- Visible (train): the 29 even MoE layers in time blocks 0 and 2 (steps 0-294 and 587-880), in `data/eplb_train_windows.json`. Expert ids are relabelled within groups. `scripts/download.sh` rebuilds the file.
+- Hidden (test): the 29 odd MoE layers in time blocks 1 and 3 (steps 294-587 and 880-1174), relabelled with a secret permutation, used only by the hidden test. No visible layer covers a hidden time block, and no hidden layer is visible at any time. Do not fetch the raw trace to read them.
 
 ## Submission Interface
 
@@ -96,17 +98,27 @@ rebalance_experts(weight, num_replicas, num_groups, num_nodes, num_gpus)
 
 - `weight`: int64 tensor `[num_layers, 256]`, the load of the window that just ended.
 - `phy2log`: `[num_layers, 288]`, logical expert held by each physical slot (slot `p` is on GPU `p // 9`, node `p // 72`).
-- `log2phy`: `[num_layers, 256, X]`, the slots of each expert in its first `logcnt` entries, `-1` after that (any `X` >= the largest replica count).
+- `log2phy`: `[num_layers, 256, X]`, the slots of each expert in its first `logcnt` entries, `-1` after that (any `X` with largest replica count <= `X` <= 288).
 - `logcnt`: `[num_layers, 256]`, replicas per expert.
 
-Every policy file in `outputs/eplb/` is evaluated; the method name is the file name. The evaluator calls the policy once per window, in order, on a fresh module for each sequence. Module-level state may carry across the calls of one sequence.
+All outputs are plain `torch.Tensor`s with an integer dtype. Every policy file in `outputs/eplb/` is evaluated; the method name is the file name.
 
-Policy rules:
-- Self-contained, at most 64 KB. It may import only `torch` and the computational standard library (no numpy, threads, processes, files, sockets, ctypes, `sys`, `os`, `gc`, `importlib`, ...).
-- Deterministic: the same inputs give the same outputs.
-- No TorchScript/`torch.compile`, no native extensions, and no tampering with the evaluator or its measurement.
+How a policy is run, for every pair:
+1. a fresh policy process is started and the policy file is executed (import);
+2. one warm-up call runs on a synthetic window (unscored, so one-time library initialisation is not charged to the scored call);
+3. the policy file is executed again in a fresh module;
+4. one scored call receives the pair's input window;
+5. the process and everything it started are then ended.
 
-Violations are detected and fail the run.
+Nothing kept in memory carries over between pairs, so a policy sees exactly one real window per process.
+
+The policy process is sandboxed by the operating system (Linux Landlock):
+- read-only access to the Python, torch and numpy installation;
+- no access to the workspace or any other file;
+- no file writes, no starting programs, no network;
+- no signals to processes outside the sandbox.
+
+A policy may import `torch`, `numpy` and the standard library, and may use threads or forked processes, but all of that work is counted (see below). Policy files are limited to 64 KB.
 
 ## Validity
 
@@ -119,38 +131,37 @@ Each returned placement must satisfy all of the following, or the whole run fail
 ## Metrics
 
 Scored (equal coefficients):
-- `speedup_vs_frontier_reference` (primary, higher is better): the frozen frontier-lab reference policy's mean rebalance work divided by the method's mean rebalance work, measured on the same windows.
-- `balancedness` (higher is better): the paper's imbalance factor on the next window, `sum over layers of mean GPU load / sum over layers of max GPU load`, averaged over all rebalances.
+- `speedup_vs_frontier_reference` (primary, higher is better): the frozen frontier-lab reference policy's mean rebalance work divided by the method's mean rebalance work, both measured on the same pairs in the same run.
+- `balancedness` (higher is better): the paper's imbalance factor on the next window, `sum over layers of mean GPU load / sum over layers of max GPU load`, averaged over all pairs.
 
-Constraint: a method whose balancedness is more than 0.005 below the frontier reference on the same windows fails the run.
+Constraint: a method whose balancedness is more than 0.005 below the frontier reference on the same pairs fails the run.
 
-Unscored diagnostics: `mean_rebalance_cost`, `balance_change_vs_frontier_reference`, `worst_window_balancedness`, `valid_fraction`, `run_failed`, `num_rebalances`, and `diagnostic_cpu_ms_per_rebalance` (host CPU time of an unmetered replay, only a cross-check).
+Unscored diagnostics: `mean_rebalance_instructions`, `balance_change_vs_frontier_reference`, `worst_window_balancedness`, `valid_fraction`, `run_failed`, `num_rebalances`, and `diagnostic_cpu_ms_per_rebalance` (host CPU time of the measured call, a cross-check only).
 
 ## Rebalance Work Measure
 
-The evaluator runs the policy in a sandboxed process and counts the work of each `rebalance_experts` call itself. Self-reported numbers are ignored. One work unit is roughly one interpreted Python bytecode (about 14 ns on the calibration host):
+Rebalance work is the number of CPU instructions the policy process executes for the scored call. The evaluator counts them from outside the policy process with the processor's hardware counter of retired user-space instructions. The counter is attached before the policy is loaded and also covers every thread and process the policy starts. The count runs from the moment the input window is sent until the complete placement has been received, so it includes turning the returned tensors into bytes.
 
-| event | units |
-|---|---|
-| Python bytecode instruction executed (any code run by the call) | 1 |
-| call from Python into a C function | 1 |
-| element of a Python container scanned by such a call (`sorted`, `sum`, `max`, `list(...)`, `torch.tensor(list)`, `.tolist()`, `list.index`, ...; sorts pay `n log2 n`, heap/bisect ops `log2 n`) | 2 |
-| PyTorch kernel dispatched | 20 |
-| tensor element read or written by a non-view kernel (sort-like kernels times `log2` of the sorted length) | 0.06 |
+- Nothing in the policy process takes part in the measurement, and self-reported numbers are ignored.
+- Every operation is charged by the instructions it actually executes, in Python, torch, numpy or any other library.
+- Kernel work (page faults, system calls) is not counted.
+- The count does not depend on machine load. Repeated runs give the same mean to within 0.03% (single pairs to within 0.2%), the same code on AMD and Intel job nodes to within 0.2%, and code that differs only by a few unused lines to within about 0.3% (memory layout). Treat smaller differences as ties.
+- The torch kernels are pinned to the same CPU code path on every x86 host (`ATEN_CPU_CAPABILITY=default`).
+- Instructions are not time. On the job hosts, torch-dispatch-heavy code retires about 1.1 instructions per cycle, numpy code about 1.7, and a plain Python interpreter loop about 4. A Python implementation therefore pays several times more per unit of CPU time than a tensorised one. The measure rewards executing fewer instructions, not fewer cycles.
 
-The weights were calibrated once against unmetered CPU time of greedy-loop, tensorised, pure-Python and search-heavy policies on the job host. Work units track CPU time within about 2x across these very different implementation styles, and they rank those policies in the same order as CPU time.
-
-Work done at import time is not counted, but it cannot depend on the windows. A single rebalance above 5e8 units fails the run. Wall-clock time is never scored.
+Work done at import is not counted, but it cannot depend on the windows. A single call above 1e11 instructions (roughly 30 s of CPU) fails the run, as does a process that makes no progress at all for 10 minutes. No wall-clock limit applies to a policy that is computing.
 
 ## Failure Handling
 
-Any failure gives the method the worst value in every scored metric (0 and 0), with the reason under `_failures` in the score file. Failures include: a load error, an exception, an invalid placement, a guard violation, non-determinism, exceeding the work cap, or the balance constraint. Missing or malformed files never leave stale scores behind.
+Any failure gives the method the worst value in every scored metric (0 and 0), with the reason under `_failures` in the score file. Failures include: a load error, an exception, an invalid output or placement, exceeding the instruction cap, a stalled process, or the balance constraint. Every method is recorded as failed before evaluation starts, so an interrupted evaluation never leaves stale or missing scores.
 
 ## Commands
 
-- `bash scripts/evaluate_train.sh` (or `scripts/evaluate.sh`): score every policy in `outputs/eplb/` on the visible windows, written to `scoring/scores_train.json` (or `scores.json`).
-- `bash scripts/evaluate_test.sh`: the hidden test, with the same interface on held-out windows, written to `scoring/scores_test.json`.
+- `bash scripts/evaluate_train.sh` (or `scripts/evaluate.sh`): score every policy in `outputs/eplb/` on the visible pairs, written to `scoring/scores_train.json` (or `scores.json`).
+- `bash scripts/evaluate_test.sh`: the hidden test, with the same interface on the held-out pairs, written to `scoring/scores_test.json`.
 - `bash scripts/reproduce.sh`: publish the shipped baselines and method, then run both evaluations.
+
+Evaluation needs Linux with `perf_event_open` available to the user (`/proc/sys/kernel/perf_event_paranoid` at most 2), as on the job nodes; without it the evaluator stops with an explanation instead of scoring.
 
 ---
 
@@ -493,6 +504,55 @@ Any failure gives the method the worst value in every scored metric (0 and 0), w
 - Rebuilt the gym on the paper's released expert-load trace and evaluator protocol (288 replicas, 8 groups, 4 nodes, 32 GPUs, 100-step windows, scored on the next window); greedy and frontier reach the paper's 0.66 balance.
 - Methods are policy files run by the evaluator; the hidden test streams held-out, relabelled layers one window at a time and measures rebalance work itself (calibrated to CPU time, deterministic).
 - Reference `evolved_zigzag`: 2.79x less work than the frozen frontier reference with identical balance (0.6583 test / 0.6674 train); honest leaner variants score higher (3.87x, 4.14x); weaker, simple and brute-force variants and all audited shortcuts score lower or tie. Details in `HARDENING.md`.
+
+</details>
+
+### Iteration 11: claude-opus-5-5 (hardener)
+- **Milestone**: `core_claim` | **Status**: done
+- **Working time**: 43m | **GPU**: 0.0h
+- **Jobs**: 11 total (9 completed, 0 failed)
+
+<details>
+<summary>Progress Log</summary>
+
+### [2026-06-02 16:04] - method_runs
+- The EPLB pipeline ran end-to-end on deterministic MoE expert-load traces.
+- Generated greedy baseline, frontier-reference zigzag baseline, evolved zigzag artifacts, and reusable scores.
+
+### [2026-06-02 16:30] - core_claim
+- Reproduced the paper's EPLB core claim on a scaled deterministic trace substitute.
+- The evolved tensorized zigzag policy reduced mean operation count versus the frontier-reference zigzag baseline while preserving valid placements and comparable load balance.
+
+### [2026-06-02 16:55] - core_claim
+- Continuation audit confirmed the implementation is not a surrogate: it directly implements overloaded-expert replication and tensorized snake/zigzag placement from the paper's EPLB case study.
+- Corrected the scoring contract so paper-reference targets compare the evolved policy against the frontier-reference baseline, while greedy operation-count speedup remains a diagnostic metric.
+
+### [2026-06-02 17:09] - core_claim
+- CPU container verification job `a288216f-231` completed successfully.
+- `scripts/reproduce.sh` regenerated EPLB outputs and `python validate.py --compare` passed all scoring and structure checks.
+
+### [2026-06-02 17:58] - core_claim
+- Final verifier CPU job `371d3b15-229` completed successfully after the evaluator hardening pass.
+- Hardened scoring now penalizes missing trace outputs, emits completeness and robustness metrics, and still supports the core EPLB claim.
+
+### [2026-06-02 18:05] - core_claim
+- Wired the method, baseline, and reproduction scripts to regenerate `scores.json`, `scores_train.json`, and `scores_test.json` from fresh artifacts.
+- Prepared a CPU container verification job for the train/test split; `core_claim_plus` will only be claimed after that job completes successfully.
+
+### [2026-06-02 18:20] - core_claim
+- Final verification passed `python validate.py --compare`; eval/method separation, shared-path checks, and train/test wiring are valid.
+- Sanitized method-agnostic evaluation documentation so from-scratch agents see the task and scoring contract without solution details.
+- Kept milestone at `core_claim` because the core EPLB claim is supported on deterministic synthetic traces, with the exact paper traces and non-public implementation still unavailable.
+
+### [2026-11-11] - core_claim (hardening, iteration 11)
+- Rebuilt the gym on the paper's released expert-load trace and evaluator protocol (288 replicas, 8 groups, 4 nodes, 32 GPUs, 100-step windows, scored on the next window); greedy and frontier reach the paper's 0.66 balance.
+- Methods are policy files run by the evaluator; the hidden test streams held-out, relabelled layers one window at a time and measures rebalance work itself (calibrated to CPU time, deterministic).
+- Reference `evolved_zigzag`: 2.79x less work than the frozen frontier reference with identical balance (0.6583 test / 0.6674 train); honest leaner variants score higher (3.87x, 4.14x); weaker, simple and brute-force variants and all audited shortcuts score lower or tie. Details in `HARDENING.md`.
+
+### [2026-11-17] - core_claim (hardening, iteration 12)
+- Rebalance work is now counted outside the policy process: retired user-space CPU instructions from a hardware counter the evaluator attaches to the policy process tree. Each pair runs in a freshly forked, Landlock-sandboxed process (no workspace access, no exec, no writes), one scored call per process.
+- Hidden test moved to held-out time blocks (odd layers × time blocks 1 and 3; visible: even layers × blocks 0 and 2), 20 pairs per slice.
+- Reference `evolved_zigzag`: 4.66x fewer instructions than the frozen frontier reference with identical balance (0.6863 test / 0.6810 train; paper 5.3x, same 0.66 level). Honest leaner variants win on 20/20 paired windows (+1.8%, +8.7%); weaker variants fail the balance gate; every audited shortcut fails, ties or loses. Details in `HARDENING.md`.
 
 </details>
 
