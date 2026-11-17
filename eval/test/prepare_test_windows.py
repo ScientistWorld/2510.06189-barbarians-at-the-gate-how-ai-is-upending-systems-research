@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
-"""Regenerate the hidden EPLB test windows (held-out MoE layers).
+"""Regenerate the hidden EPLB test pairs (held-out layers, held-out time).
 
 The committed ``eval/test/test_windows.json`` is what the hidden test reads;
 this script documents how it was produced and can rebuild it from the paper's
-public trace.  It emits only the *odd* MoE layers, with a layer shuffle and an
-expert relabelling (groups permuted, experts permuted within their group) drawn
-from a seed that lives only in this directory.
+public trace.  The trace is cut into four equal time blocks.  The hidden test
+uses only the *odd* MoE layers in blocks 1 and 3: no visible layer covers
+these time windows, and no hidden layer is visible at any time.  Layers are
+shuffled and expert ids relabelled (groups permuted, experts permuted within
+their group) with a seed that lives only in this directory.
+
+Each block contributes 10 rebalance pairs, starting every 10 steps: the input
+window is steps ``[s, s + 100)`` and the scored window is ``[s + 100, s + 200)``.
 
 Usage:
     python eval/test/prepare_test_windows.py --raw /path/to/expert-load.json
@@ -31,7 +36,9 @@ RAW_URL = (
 RAW_SHA256 = "d93580b3cb3e404a60237fa708271b360229a0c6fdfdd924a8ec4fdb440b71ad"
 
 INTERVAL = 100
-OFFSETS = (0, 25, 50, 75)
+PAIR_STRIDE = 10
+PAIRS_PER_BLOCK = 10
+BLOCKS = ((294, 587), (880, 1174))  # time blocks 1 and 3 of the trace's four
 CONFIG = {"num_replicas": 288, "num_groups": 8, "num_nodes": 4, "num_gpus": 32}
 LAYERS = tuple(range(1, 58, 2))
 SECRET_SEED = 7_391_442_017
@@ -60,6 +67,21 @@ def relabelling(num_experts: int, num_groups: int, rng: random.Random) -> list[i
     return new_id
 
 
+def window(history, start, layer_order, maps, num_experts):
+    out = []
+    for layer in layer_order:
+        summed = [0] * num_experts
+        for entry in history[start:start + INTERVAL]:
+            row = entry["logical_expert_load"][layer]
+            for expert, value in enumerate(row):
+                summed[expert] += int(value)
+        relabelled = [0] * num_experts
+        for old, new in enumerate(maps[layer]):
+            relabelled[new] = summed[old]
+        out.append(relabelled)
+    return out
+
+
 def build(raw_path: Path) -> dict:
     history = json.loads(raw_path.read_text())["load_history"]
     num_experts = len(history[0]["logical_expert_load"][0])
@@ -68,32 +90,26 @@ def build(raw_path: Path) -> dict:
     rng.shuffle(layer_order)
     maps = {layer: relabelling(num_experts, CONFIG["num_groups"], rng) for layer in layer_order}
 
-    sequences = []
-    for offset in OFFSETS:
-        windows = []
-        for start in range(offset, len(history), INTERVAL):
-            end = min(start + INTERVAL, len(history))
-            window = []
-            for layer in layer_order:
-                summed = [0] * num_experts
-                for entry in history[start:end]:
-                    row = entry["logical_expert_load"][layer]
-                    for expert, value in enumerate(row):
-                        summed[expert] += int(value)
-                relabelled = [0] * num_experts
-                for old, new in enumerate(maps[layer]):
-                    relabelled[new] = summed[old]
-                window.append(relabelled)
-            windows.append({"start": start, "end": end, "load": window})
-        sequences.append({"offset": offset, "windows": windows})
-
+    pairs = []
+    for a, b in BLOCKS:
+        for k in range(PAIRS_PER_BLOCK):
+            start = a + k * PAIR_STRIDE
+            assert start + 2 * INTERVAL <= b <= len(history)
+            pairs.append({
+                "block": [a, b],
+                "start": start,
+                "load": window(history, start, layer_order, maps, num_experts),
+                "next_load": window(history, start + INTERVAL, layer_order, maps, num_experts),
+            })
     return {
-        "description": "Hidden EPLB test windows (held-out MoE layers, secretly relabelled).",
+        "description": "Hidden EPLB test pairs (held-out MoE layers in held-out time blocks, secretly relabelled).",
         "interval_steps": INTERVAL,
+        "pair_stride_steps": PAIR_STRIDE,
+        "blocks": [list(block) for block in BLOCKS],
         "config": dict(CONFIG),
         "num_layers": len(layer_order),
         "num_logical_experts": num_experts,
-        "sequences": sequences,
+        "pairs": pairs,
     }
 
 
@@ -119,8 +135,7 @@ def main() -> None:
 
     out = Path(args.output)
     out.write_text(json.dumps(payload, separators=(",", ":")) + "\n")
-    n_windows = sum(len(s["windows"]) for s in payload["sequences"])
-    print(f"wrote {out} ({payload['num_layers']} layers, {n_windows} windows)")
+    print(f"wrote {out} ({payload['num_layers']} layers, {len(payload['pairs'])} rebalance pairs)")
 
 
 if __name__ == "__main__":

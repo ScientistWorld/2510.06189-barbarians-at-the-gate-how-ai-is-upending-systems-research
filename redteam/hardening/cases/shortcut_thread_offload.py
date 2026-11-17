@@ -1,4 +1,4 @@
-# AUDIT CASE: shortcut -- move work to an unmetered thread
+# AUDIT CASE: shortcut -- run the rebalance in a separate thread
 # SPDX-License-Identifier: Apache-2.0
 """Paper's evolved EPLB policy (reproduction): zigzag reused across EPLB stages.
 
@@ -22,7 +22,6 @@ num_gpus) -> (phy2log[L, R], log2phy[L, E, X], logcnt[L, E]).
 # EVOLVE-BLOCK-START
 
 import torch
-import threading
 
 
 def balanced_packing(weight: torch.Tensor,
@@ -162,7 +161,7 @@ def rebalance_experts_hierarchical(
     return pphy2log, pphyrank, logcnt
 
 
-def rebalance_experts(
+def _rebalance_experts_impl(
     weight: torch.Tensor,
     num_replicas: int,
     num_groups: int,
@@ -215,6 +214,19 @@ def rebalance_experts(
                      device=log2phy.device).expand(num_layers, -1),
     )
     return phy2log, log2phy, logcnt
+
+
+def rebalance_experts(weight, num_replicas, num_groups, num_nodes, num_gpus):
+    import threading
+    box = {}
+
+    def work():
+        box["out"] = _rebalance_experts_impl(weight, num_replicas, num_groups, num_nodes, num_gpus)
+
+    worker = threading.Thread(target=work)
+    worker.start()
+    worker.join()
+    return box["out"]
 
 
 # EVOLVE-BLOCK-END

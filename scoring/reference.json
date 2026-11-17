@@ -1,25 +1,25 @@
 {
   "experiments": {
     "eplb_moe_placement": {
-      "description": "MoE expert-parallel load balancing on the paper's ShareGPT/GSM8K expert-load trace (288 replicas, 8 expert groups, 4 nodes, 32 GPUs): rebalance on each 100-step window, keep GPU load balanced on the next window, and do it with less rebalance work than the frontier-lab reference.",
+      "description": "MoE expert-parallel load balancing on the paper's ShareGPT/GSM8K expert-load trace (288 replicas, 8 expert groups, 4 nodes, 32 GPUs): rebalance on a 100-step window, keep GPU load balanced on the next window, and do it with less rebalance work than the frontier-lab reference.",
       "weight": 1.0,
       "primary_metric": "speedup_vs_frontier_reference",
-      "_scale_note": "Paper values are kept as reported. The paper measures wall-clock rebalance time (540 / 19.6 / 3.7 ms); the gym measures deterministic rebalance work units with a fixed cost model and reports speedup = anchor work / method work, so the measured speedup is the same quantity on a hardware-independent scale and need not equal 5.3. Balancedness is the paper's imbalance factor (mean GPU load / max GPU load on the next window), on the paper's scale (0.66). Each scored rebalance covers 29 MoE layers (the paper's 58 layers split into visible and held-out halves).",
+      "_scale_note": "Paper values are kept as reported. The paper measures wall-clock rebalance time (540 / 19.6 / 3.7 ms); the gym measures rebalance work as retired CPU instructions of the policy process (hardware counter read by the evaluator, deterministic and independent of machine load) and reports speedup = anchor instructions / method instructions on the same windows, so the measured speedup is the same kind of quantity but need not equal 5.3 (the paper's evolved code and frontier code are unreleased and are reconstructed here). Balancedness is the paper's imbalance factor (mean GPU load / max GPU load on the next window), on the paper's scale (0.66). Each scored rebalance covers 29 MoE layers (the paper's 58 layers are split into visible and held-out halves) and 20 rebalance pairs per slice (the trace's four time blocks are split between the visible and the hidden slice).",
       "metrics": {
         "speedup_vs_frontier_reference": {
           "higher_is_better": true,
           "coefficient": 1.0,
-          "description": "Mean rebalance work of the frozen frontier-reference policy divided by the method's mean rebalance work, both measured by the evaluator on the same windows. 0 if the run failed (invalid placement, guard violation, non-determinism, work cap, or balance constraint)."
+          "description": "Mean rebalance instructions of the frozen frontier-reference policy divided by the method's mean rebalance instructions, both measured by the evaluator (hardware instruction counter on the policy process) on the same rebalance pairs. 0 if the run failed (invalid output or placement, crash, instruction cap, or balance constraint)."
         },
         "balancedness": {
           "higher_is_better": true,
           "coefficient": 1.0,
-          "description": "Paper's imbalance factor on the next window: sum over layers of mean GPU load divided by sum over layers of max GPU load, averaged over all rebalances. Must stay within 0.005 of the frontier reference or the run fails. 0 if the run failed."
+          "description": "Paper's imbalance factor on the next window: sum over layers of mean GPU load divided by sum over layers of max GPU load, averaged over all rebalance pairs. Must stay within 0.005 of the frontier reference or the run fails. 0 if the run failed."
         },
-        "mean_rebalance_cost": {
+        "mean_rebalance_instructions": {
           "higher_is_better": false,
           "coefficient": 0.0,
-          "description": "Unscored diagnostic: mean measured work units per rebalance (bytecodes, C calls and their argument sizes, PyTorch kernels and the elements they touch)."
+          "description": "Unscored diagnostic: mean retired user-space CPU instructions per rebalance, measured by the evaluator's hardware counter on the policy process tree from sending the window to receiving the placement."
         },
         "balance_change_vs_frontier_reference": {
           "higher_is_better": true,
@@ -34,7 +34,7 @@
         "valid_fraction": {
           "higher_is_better": true,
           "coefficient": 0.0,
-          "description": "Unscored diagnostic: fraction of rebalances that returned a valid placement before the run stopped."
+          "description": "Unscored diagnostic: fraction of rebalance pairs that returned a valid placement before the run stopped."
         },
         "run_failed": {
           "higher_is_better": false,
@@ -44,12 +44,12 @@
         "diagnostic_cpu_ms_per_rebalance": {
           "higher_is_better": false,
           "coefficient": 0.0,
-          "description": "Unscored, host-dependent: CPU time of an unmetered replay, kept only to cross-check the work measure."
+          "description": "Unscored, host-dependent: CPU time of the measured rebalance (software task clock), kept only to cross-check the instruction count."
         },
         "num_rebalances": {
           "higher_is_better": true,
           "coefficient": 0.0,
-          "description": "Unscored: number of rebalance calls scored per method."
+          "description": "Unscored: number of rebalance pairs scored per method."
         },
         "reported_runtime_ms": {
           "higher_is_better": false,

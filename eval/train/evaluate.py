@@ -7,22 +7,37 @@ paper's interface::
     rebalance_experts(weight[L, E], num_replicas, num_groups, num_nodes, num_gpus)
         -> (phy2log[L, R], log2phy[L, E, X], logcnt[L, E])
 
-For each policy this evaluator starts a sandboxed harness process (harness.py)
-and streams the visible train expert-load windows (data/eplb_train_windows.json)
-to it one at a time: the policy
-rebalances on window ``i`` and is scored on window ``i + 1``, which the policy
-process never holds while it decides.  The evaluator then recomputes, from
-the raw returned maps and the raw work counters, every reported number:
+The visible slice holds 20 rebalance pairs of the visible (even) MoE layers
+in time blocks 0 and 2 of the trace (data/eplb_train_windows.json); the
+hidden test uses other layers in other time blocks with the same protocol.  For each pair,
+the evaluator starts a fresh sandboxed policy process (harness.py), lets it
+import the policy and run one warm-up rebalance on a synthetic window,
+re-imports the policy, and then sends it the pair's input window only.  The
+policy's placement is scored on the following window, which never enters the
+policy process.  One scored rebalance per process: nothing a policy keeps in
+memory can carry over between pairs.
+
+Rebalance work is measured here, outside the policy process: a hardware
+counter of retired user-space instructions (Linux perf_event_open) is
+attached to the policy process and inherited by every thread or process it
+creates.  The work of a rebalance is the counter's increase from the moment
+the input window is sent until the complete placement has been received.
+Every operation is thus charged by the instructions it actually executes,
+whatever the implementation style, and nothing the policy does can switch the
+counter off or rewrite it.
+
+From the raw returned maps and the raw counter values, this evaluator
+recomputes every reported number:
 
 * validity of each placement (exact replica budget, every expert deployed,
   consistent maps, expert groups kept whole on equally loaded nodes),
-* GPU load balance on the next window (mean GPU load / max GPU load, summed
-  over layers as in the paper's evaluator),
-* rebalance work measured by the harness, and the speedup against the frozen
-  frontier-reference policy in this directory, run on the same windows.
+* GPU load balance on the next window (sum over layers of mean GPU load /
+  sum over layers of max GPU load, the paper's imbalance factor),
+* speedup: mean instructions of the frozen frontier-reference policy in this
+  directory, run on the same pairs, divided by the policy's mean instructions.
 
-A policy that fails anything (load error, crash, invalid map, guard violation,
-non-determinism, work cap, or balance more than BALANCE_TOLERANCE below the
+A policy that fails anything (load error, crash, invalid output or placement,
+instruction cap, stall, or balance more than BALANCE_TOLERANCE below the
 frontier reference) is scored as failed: worst value in every scored metric.
 
 Usage: python eval/train/evaluate.py [--outputs-dir outputs/eplb] [--scores scoring/scores_train.json]
@@ -31,15 +46,17 @@ Usage: python eval/train/evaluate.py [--outputs-dir outputs/eplb] [--scores scor
 from __future__ import annotations
 
 import argparse
-import hashlib
+import ctypes
 import json
-import math
 import os
+import platform
 import select
+import struct
 import subprocess
 import sys
 import tempfile
 import time
+from array import array
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -51,18 +68,15 @@ HARNESS_PATH = HERE / "harness.py"
 ANCHOR_PATH = HERE / "anchor_frontier_reference.py"
 ANCHOR_NAME = "frontier_reference_zigzag"
 
-# Work units per measured event (one unit ~ one interpreted bytecode).
-W_INSTRUCTION = 1.0
-W_C_CALL = 1.0
-W_PY_ELEMENT = 2.0
-W_KERNEL = 20.0
-W_TENSOR_ELEMENT = 0.06
-COST_CAP = 5.0e8
-
 BALANCE_TOLERANCE = 0.005
 MAX_POLICY_BYTES = 64 * 1024
-LOAD_TIMEOUT_S = 600.0
-CALL_TIMEOUT_S = 1800.0
+# Instruction caps (deterministic; no wall-clock limit applies to a policy that computes).
+STARTUP_CAP = 1.0e11     # interpreter start, torch import, sandbox
+LOAD_CAP = 1.0e11        # executing the policy file (import-time work)
+CALL_CAP = 1.0e11        # one rebalance (warm-up or scored), roughly 30 s of CPU
+STALL_S = 600.0          # fail a process whose counter has not moved for this long
+POLL_S = 0.25
+MAX_REPLY_BYTES = 64 << 20
 
 SCORED_WORST = {"speedup_vs_frontier_reference": 0.0, "balancedness": 0.0}
 
@@ -71,156 +85,281 @@ class HarnessError(RuntimeError):
     pass
 
 
-class HarnessSession:
-    """One sandboxed policy process, driven request by request."""
+class MeasurementUnavailable(RuntimeError):
+    pass
 
-    def __init__(self, policy_path: Path, log_path: Path, workdir: Path):
+
+# ---------------------------------------------------------------------------
+# Hardware instruction counter (perf_event_open), read from this process only
+# ---------------------------------------------------------------------------
+class _PerfEventAttr(ctypes.Structure):
+    _fields_ = [("type", ctypes.c_uint32), ("size", ctypes.c_uint32), ("config", ctypes.c_uint64),
+                ("sample_period", ctypes.c_uint64), ("sample_type", ctypes.c_uint64),
+                ("read_format", ctypes.c_uint64), ("flags", ctypes.c_uint64),
+                ("wakeup_events", ctypes.c_uint32), ("bp_type", ctypes.c_uint32),
+                ("config1", ctypes.c_uint64), ("config2", ctypes.c_uint64),
+                ("branch_sample_type", ctypes.c_uint64), ("sample_regs_user", ctypes.c_uint64),
+                ("sample_stack_user", ctypes.c_uint32), ("clockid", ctypes.c_int32),
+                ("sample_regs_intr", ctypes.c_uint64), ("aux_watermark", ctypes.c_uint32),
+                ("sample_max_stack", ctypes.c_uint16), ("reserved", ctypes.c_uint16)]
+
+
+_SYS_PERF_EVENT_OPEN = {"x86_64": 298, "amd64": 298, "aarch64": 241, "arm64": 241}.get(platform.machine().lower())
+_LIBC = ctypes.CDLL(None, use_errno=True)
+_LIBC.syscall.restype = ctypes.c_long
+PERF_TYPE_HARDWARE, PERF_COUNT_HW_INSTRUCTIONS = 0, 1
+PERF_TYPE_SOFTWARE, PERF_COUNT_SW_TASK_CLOCK = 1, 1
+_FLAGS = (1 << 1) | (1 << 5) | (1 << 6)  # inherit to new threads/processes, user space only
+_READ_FORMAT = 1 | 2  # time enabled, time running
+
+
+def _perf_open(pid: int, type_: int, config: int) -> int:
+    if _SYS_PERF_EVENT_OPEN is None:
+        raise MeasurementUnavailable(f"no perf_event_open syscall number for {platform.machine()}")
+    attr = _PerfEventAttr()
+    attr.type, attr.size, attr.config = type_, ctypes.sizeof(_PerfEventAttr), config
+    attr.flags, attr.read_format = _FLAGS, _READ_FORMAT
+    fd = _LIBC.syscall(ctypes.c_long(_SYS_PERF_EVENT_OPEN), ctypes.byref(attr), ctypes.c_int(pid),
+                       ctypes.c_int(-1), ctypes.c_int(-1), ctypes.c_ulong(8))  # FD_CLOEXEC
+    if fd < 0:
+        err = ctypes.get_errno()
+        try:
+            paranoid = Path("/proc/sys/kernel/perf_event_paranoid").read_text().strip()
+        except OSError:
+            paranoid = "?"
+        raise MeasurementUnavailable(
+            f"perf_event_open(type={type_}, config={config}) failed: {os.strerror(err)} "
+            f"(perf_event_paranoid={paranoid})")
+    return int(fd)
+
+
+class Counters:
+    """Retired user-space instructions and CPU time of one process tree."""
+
+    def __init__(self, pid: int):
+        self.instr_fd = _perf_open(pid, PERF_TYPE_HARDWARE, PERF_COUNT_HW_INSTRUCTIONS)
+        try:
+            self.clock_fd = _perf_open(pid, PERF_TYPE_SOFTWARE, PERF_COUNT_SW_TASK_CLOCK)
+        except MeasurementUnavailable:
+            self.clock_fd = None
+        self.multiplexed = False
+
+    @staticmethod
+    def _read(fd: int) -> tuple[float, bool]:
+        value, enabled, running = struct.unpack("QQQ", os.read(fd, 24))
+        if running and running < enabled:
+            return value * enabled / running, True
+        return float(value), False
+
+    def instructions(self) -> float:
+        value, scaled = self._read(self.instr_fd)
+        self.multiplexed |= scaled
+        return value
+
+    def cpu_ns(self) -> float:
+        return self._read(self.clock_fd)[0] if self.clock_fd is not None else 0.0
+
+    def close(self) -> None:
+        for fd in (self.instr_fd, self.clock_fd):
+            if fd is not None:
+                os.close(fd)
+
+
+def _no_aslr() -> None:
+    """Disable address-space randomisation in the policy process (stable counts)."""
+    try:
+        libc = ctypes.CDLL(None)
+        persona = libc.personality(0xFFFFFFFF)
+        if persona != -1:
+            libc.personality(persona | 0x0040000)  # ADDR_NO_RANDOMIZE
+    except Exception:  # noqa: BLE001
+        pass
+
+
+# ---------------------------------------------------------------------------
+# One sandboxed policy process
+# ---------------------------------------------------------------------------
+class Session:
+    def __init__(self, policy_path: Path, log, workdir: Path):
         read_fd, write_fd = os.pipe()
-        env = {k: v for k, v in os.environ.items() if not k.startswith("PYTHON")}
-        env.update(
-            {
-                "PYTHONHASHSEED": "0",
-                "OMP_NUM_THREADS": "1",
-                "MKL_NUM_THREADS": "1",
-                "OPENBLAS_NUM_THREADS": "1",
-                "HOME": str(workdir),
-            }
-        )
-        self.log = log_path.open("wb")
+        env = {k: v for k, v in os.environ.items() if not k.startswith(("PYTHON", "ATEN_", "OMP_", "MKL_"))}
+        env.update({
+            "PYTHONHASHSEED": "0",
+            "OMP_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "ATEN_CPU_CAPABILITY": "default",  # same kernels on every x86 host
+            "HOME": str(workdir),
+        })
         self.proc = subprocess.Popen(
-            [
-                sys.executable,
-                "-s",
-                "-B",
-                "-P",
-                str(HARNESS_PATH),
-                "--policy",
-                str(policy_path),
-                "--reply-fd",
-                str(write_fd),
-            ],
-            stdin=subprocess.PIPE,
-            stdout=self.log,
-            stderr=self.log,
-            pass_fds=(write_fd,),
-            env=env,
-            cwd=str(workdir),
+            [sys.executable, "-s", "-B", "-P", str(HARNESS_PATH), "--policy", str(policy_path),
+             "--reply-fd", str(write_fd), "--workspace", str(ROOT)],
+            stdin=subprocess.PIPE, stdout=log, stderr=log, pass_fds=(write_fd,), env=env,
+            cwd=str(workdir), preexec_fn=_no_aslr,
         )
         os.close(write_fd)
         self.fd = read_fd
-        self.buffer = b""
-
-    def request(self, payload: dict, timeout: float) -> dict:
+        self.buffer = bytearray()
+        self.counters = None
         try:
-            self.proc.stdin.write(json.dumps(payload, separators=(",", ":")).encode() + b"\n")
+            self.counters = Counters(self.proc.pid)
+        except MeasurementUnavailable:
+            self.close()
+            raise
+        self._write(b"start\n")
+        self.ready, _ = self.receive(STARTUP_CAP, "startup")
+        if not self.ready.get("ok"):
+            raise HarnessError(f"policy process failed to start: {self.ready.get('error')}")
+
+    def _write(self, data: bytes) -> None:
+        try:
+            self.proc.stdin.write(data)
             self.proc.stdin.flush()
         except (BrokenPipeError, OSError) as exc:
             raise HarnessError(f"policy process died ({exc})") from exc
-        deadline = time.monotonic() + timeout
-        while b"\n" not in self.buffer:
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                raise HarnessError(f"policy process exceeded {timeout:.0f}s safety timeout")
-            ready, _, _ = select.select([self.fd], [], [], remaining)
-            if not ready:
-                continue
-            chunk = os.read(self.fd, 1 << 22)
-            if not chunk:
-                raise HarnessError("policy process exited unexpectedly")
-            self.buffer += chunk
-        line, _, self.buffer = self.buffer.partition(b"\n")
-        try:
-            reply = json.loads(line)
-        except json.JSONDecodeError as exc:
-            raise HarnessError("policy process sent a malformed reply") from exc
-        if not isinstance(reply, dict):
-            raise HarnessError("policy process sent a malformed reply")
-        return reply
+
+    def send(self, header: dict, payload: bytes = b"") -> None:
+        header = dict(header, nbytes=len(payload))
+        self._write(json.dumps(header, separators=(",", ":")).encode() + b"\n" + payload)
+
+    def kill(self) -> None:
+        if self.proc.poll() is None:
+            self.proc.kill()
+            self.proc.wait()
+
+    def receive(self, cap: float, what: str) -> tuple[dict, bytes]:
+        start = self.counters.instructions()
+        last_value, last_change = start, time.monotonic()
+        header, need = None, 0
+        while True:
+            if header is None:
+                newline = self.buffer.find(b"\n")
+                if newline >= 0:
+                    try:
+                        header = json.loads(bytes(self.buffer[:newline]))
+                        need = int(header.get("nbytes", 0))
+                    except (ValueError, TypeError, AttributeError) as exc:
+                        self.kill()
+                        raise HarnessError(f"malformed reply during {what}") from exc
+                    if not isinstance(header, dict) or not 0 <= need <= MAX_REPLY_BYTES:
+                        self.kill()
+                        raise HarnessError(f"malformed reply during {what}")
+                    del self.buffer[:newline + 1]
+            if header is not None and len(self.buffer) >= need:
+                payload = bytes(self.buffer[:need])
+                del self.buffer[:need]
+                return header, payload
+            ready, _, _ = select.select([self.fd], [], [], POLL_S)
+            if ready:
+                chunk = os.read(self.fd, 1 << 22)
+                if not chunk:
+                    self.kill()
+                    raise HarnessError(f"policy process exited unexpectedly during {what}")
+                self.buffer += chunk
+            value = self.counters.instructions()
+            if value - start > cap:
+                self.kill()
+                raise HarnessError(f"{what} exceeded the instruction cap ({cap:.0e})")
+            now = time.monotonic()
+            if value != last_value:
+                last_value, last_change = value, now
+            elif now - last_change > STALL_S:
+                self.kill()
+                raise HarnessError(f"policy process stalled during {what} (no instructions for {STALL_S:.0f}s)")
+
+    def load(self) -> None:
+        self.send({"cmd": "load"})
+        reply, _ = self.receive(LOAD_CAP, "load")
+        if not reply.get("ok"):
+            raise HarnessError(str(reply.get("error", "load failed")))
 
     def close(self) -> None:
         try:
             if self.proc.poll() is None:
                 self.proc.stdin.write(b'{"cmd":"exit"}\n')
                 self.proc.stdin.flush()
-                self.proc.wait(timeout=10)
+                self.proc.wait(timeout=30)
         except Exception:  # noqa: BLE001
             pass
-        if self.proc.poll() is None:
-            self.proc.kill()
-            self.proc.wait()
+        self.kill()
+        try:
+            self.proc.stdin.close()
+        except Exception:  # noqa: BLE001
+            pass
         os.close(self.fd)
-        self.log.close()
+        if self.counters is not None:
+            self.counters.close()
 
 
-def work_units(counts) -> float:
-    if not isinstance(counts, list) or len(counts) != 5:
-        raise HarnessError("missing work counters")
-    values = []
-    for value in counts:
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
-            raise HarnessError("non-numeric work counter")
-        if not math.isfinite(value) or value < 0:
-            raise HarnessError("impossible work counter")
-        values.append(float(value))
-    cost = (
-        W_INSTRUCTION * values[0]
-        + W_C_CALL * values[1]
-        + W_PY_ELEMENT * values[2]
-        + W_KERNEL * values[3]
-        + W_TENSOR_ELEMENT * values[4]
-    )
-    if cost <= 0:
-        raise HarnessError("impossible (non-positive) rebalance work")
-    return cost
+# ---------------------------------------------------------------------------
+# Scoring
+# ---------------------------------------------------------------------------
+def int64_bytes(rows) -> bytes:
+    flat = array("q", (v for row in rows for v in row))
+    if sys.byteorder != "little":
+        flat.byteswap()
+    return flat.tobytes()
 
 
-def check_placement(reply: dict, cfg: dict, num_layers: int, num_experts: int) -> str | None:
+def warmup_rows(num_layers: int, num_experts: int) -> list[list[int]]:
+    """Synthetic heavy-tailed load used only to warm up torch in each process."""
+    return [[100_000 // (1 + (e * 97 + layer * 31) % num_experts) + 1 for e in range(num_experts)]
+            for layer in range(num_layers)]
+
+
+def decode(reply: dict, payload: bytes, cfg: dict, num_layers: int, num_experts: int):
+    replicas = cfg["num_replicas"]
+    shapes = reply.get("shapes")
+    if not isinstance(shapes, dict):
+        raise HarnessError("reply without output shapes")
+    width_shape = shapes.get("log2phy")
+    if (shapes.get("phy2log") != [num_layers, replicas] or shapes.get("logcnt") != [num_layers, num_experts]
+            or not isinstance(width_shape, list) or len(width_shape) != 3
+            or width_shape[:2] != [num_layers, num_experts] or not isinstance(width_shape[2], int)
+            or not 1 <= width_shape[2] <= replicas):
+        raise HarnessError(f"unexpected output shapes {shapes}")
+    width = width_shape[2]
+    values = array("q")
+    values.frombytes(payload)
+    if sys.byteorder != "little":
+        values.byteswap()
+    n1, n2, n3 = num_layers * replicas, num_layers * num_experts * width, num_layers * num_experts
+    if len(values) != n1 + n2 + n3:
+        raise HarnessError("reply payload has the wrong size")
+    return values[:n1], values[n1:n1 + n2], width, values[n1 + n2:]
+
+
+def check_placement(phy2log, log2phy, width, logcnt, cfg, num_layers, num_experts) -> str | None:
     """Return None if the returned maps are a valid EPLB placement, else a reason."""
-    num_replicas = cfg["num_replicas"]
+    replicas = cfg["num_replicas"]
     num_groups = cfg["num_groups"]
     num_nodes = cfg["num_nodes"]
-    phy2log = reply.get("phy2log")
-    logcnt = reply.get("logcnt")
-    slots = reply.get("log2phy_slots")
-    width = reply.get("log2phy_width")
-    if not reply.get("log2phy_padding_ok", False):
-        return "log2phy entries beyond each expert's replica count must be -1"
-    if not (isinstance(phy2log, list) and isinstance(logcnt, list) and isinstance(slots, list)):
-        return "missing maps"
-    if not isinstance(width, int):
-        return "missing log2phy width"
-    if len(phy2log) != num_layers or len(logcnt) != num_layers or len(slots) != num_layers:
-        return "maps have the wrong number of layers"
     hierarchical = num_groups % num_nodes == 0
     group_size = num_experts // num_groups
-    slots_per_node = num_replicas // num_nodes
+    slots_per_node = replicas // num_nodes
     groups_per_node = num_groups // num_nodes if hierarchical else 0
     for layer in range(num_layers):
-        row = phy2log[layer]
-        cnt_row = logcnt[layer]
-        if not isinstance(row, list) or len(row) != num_replicas:
-            return f"layer {layer}: phy2log must list exactly {num_replicas} physical experts"
-        if not isinstance(cnt_row, list) or len(cnt_row) != num_experts:
-            return f"layer {layer}: logcnt must list {num_experts} experts"
+        row = phy2log[layer * replicas:(layer + 1) * replicas]
+        cnt_row = logcnt[layer * num_experts:(layer + 1) * num_experts]
         positions: list[list[int]] = [[] for _ in range(num_experts)]
         for physical, expert in enumerate(row):
-            if type(expert) is not int or not 0 <= expert < num_experts:
-                return f"layer {layer}: invalid logical expert id {expert!r}"
+            if not 0 <= expert < num_experts:
+                return f"layer {layer}: invalid logical expert id {expert}"
             positions[expert].append(physical)
-        layer_slots = slots[layer]
-        if not isinstance(layer_slots, list) or len(layer_slots) != num_experts:
-            return f"layer {layer}: log2phy has the wrong shape"
         for expert in range(num_experts):
             count = len(positions[expert])
             if count == 0:
                 return f"layer {layer}: logical expert {expert} has no replica"
             if cnt_row[expert] != count:
-                return f"layer {layer}: logcnt[{expert}]={cnt_row[expert]!r} but phy2log holds {count}"
+                return f"layer {layer}: logcnt[{expert}]={cnt_row[expert]} but phy2log holds {count}"
             if count > width:
                 return f"layer {layer}: log2phy is narrower than the replica count"
-            listed = layer_slots[expert]
-            if not isinstance(listed, list) or sorted(listed) != positions[expert]:
+            base = (layer * num_experts + expert) * width
+            entries = log2phy[base:base + width]
+            if sorted(entries[:count]) != positions[expert]:
                 return f"layer {layer}: log2phy disagrees with phy2log for expert {expert}"
+            if entries[count:].count(-1) != width - count:
+                return "log2phy entries beyond each expert's replica count must be -1"
         if hierarchical:
             node_of_group = [-1] * num_groups
             for physical, expert in enumerate(row):
@@ -238,38 +377,33 @@ def check_placement(reply: dict, cfg: dict, num_layers: int, num_experts: int) -
     return None
 
 
-def balancedness(phy2log, logcnt, next_load, num_gpus: int) -> float:
+def balancedness(phy2log, logcnt, next_load, cfg, num_layers, num_experts) -> float:
     """Paper's imbalance factor: sum_l mean GPU load / sum_l max GPU load."""
+    replicas, num_gpus = cfg["num_replicas"], cfg["num_gpus"]
+    per_gpu = replicas // num_gpus
     total_mean = 0.0
     total_max = 0.0
-    for layer, row in enumerate(phy2log):
-        per_gpu = len(row) // num_gpus
+    for layer in range(num_layers):
         gpu_load = [0.0] * num_gpus
         load_row = next_load[layer]
-        cnt_row = logcnt[layer]
-        for physical, expert in enumerate(row):
+        cnt_row = logcnt[layer * num_experts:(layer + 1) * num_experts]
+        for physical, expert in enumerate(phy2log[layer * replicas:(layer + 1) * replicas]):
             gpu_load[physical // per_gpu] += load_row[expert] / cnt_row[expert]
         total_mean += sum(gpu_load) / num_gpus
         total_max += max(gpu_load)
     return total_mean / total_max if total_max > 0 else 1.0
 
 
-def digest(reply: dict) -> str:
-    payload = json.dumps(
-        [reply.get("phy2log"), reply.get("logcnt"), reply.get("log2phy_slots")],
-        separators=(",", ":"),
-    )
-    return hashlib.sha256(payload.encode()).hexdigest()
-
-
 def run_policy(policy_path: Path, workload: dict, log_dir: Path) -> dict:
-    """Run one policy over every rebalance window; return raw per-call records."""
+    """Run one policy on every rebalance pair; return raw per-call records."""
     cfg = workload["config"]
     num_layers = workload["num_layers"]
     num_experts = workload["num_logical_experts"]
-    sequences = workload["sequences"]
-    total_calls = sum(len(seq["windows"]) - 1 for seq in sequences)
-    record = {"calls": [], "cpu_ns": [], "failure": None, "total_calls": total_calls, "valid": 0}
+    pairs = workload["pairs"]
+    shape = [num_layers, num_experts]
+    warm = int64_bytes(warmup_rows(num_layers, num_experts))
+    record = {"calls": [], "failure": None, "total_calls": len(pairs), "valid": 0,
+              "sandbox": None, "multiplexed": False}
 
     try:
         size = policy_path.stat().st_size
@@ -280,60 +414,48 @@ def run_policy(policy_path: Path, workload: dict, log_dir: Path) -> dict:
         record["failure"] = f"policy file is {size} bytes (limit {MAX_POLICY_BYTES})"
         return record
 
-    workdir = Path(tempfile.mkdtemp(prefix="eplb_policy_"))
     policy_path = policy_path.resolve()
-    session = HarnessSession(policy_path, log_dir.resolve() / f"{policy_path.stem}.log", workdir)
-    try:
-        digests: list[str] = []
-        for seq in sequences:
-            reply = session.request({"cmd": "load"}, LOAD_TIMEOUT_S)
-            if not reply.get("ok"):
-                raise HarnessError(str(reply.get("error", "load failed")))
-            windows = seq["windows"]
-            for index in range(len(windows) - 1):
-                request = {"cmd": "call", "metered": True, "load": windows[index]["load"], **cfg}
-                reply = session.request(request, CALL_TIMEOUT_S)
+    workdir = Path(tempfile.mkdtemp(prefix="eplb_policy_"))
+    with (log_dir.resolve() / f"{policy_path.stem}.log").open("wb") as log:
+        for index, pair in enumerate(pairs):
+            session = None
+            try:
+                session = Session(policy_path, log, workdir)
+                if record["sandbox"] is None:
+                    record["sandbox"] = session.ready.get("sandbox")
+                session.load()
+                session.send({"cmd": "call", "shape": shape, **cfg}, warm)
+                session.receive(CALL_CAP, "warm-up rebalance")  # result unscored
+                session.load()  # fresh module for the scored call
+                request = int64_bytes(pair["load"])
+                before_instr = session.counters.instructions()
+                before_cpu = session.counters.cpu_ns()
+                session.send({"cmd": "call", "shape": shape, **cfg}, request)
+                reply, payload = session.receive(CALL_CAP, f"rebalance of pair {index}")
                 if not reply.get("ok"):
-                    raise HarnessError(
-                        f"offset {seq['offset']} window {index}: {reply.get('error', 'call failed')}"
-                    )
-                cost = work_units(reply.get("counts"))
-                if cost > COST_CAP:
-                    raise HarnessError(f"offset {seq['offset']} window {index}: work cap exceeded")
-                reason = check_placement(reply, cfg, num_layers, num_experts)
+                    raise HarnessError(f"pair {index} (start {pair['start']}): {reply.get('error', 'call failed')}")
+                phy2log, log2phy, width, logcnt = decode(reply, payload, cfg, num_layers, num_experts)
+                reason = check_placement(phy2log, log2phy, width, logcnt, cfg, num_layers, num_experts)
                 if reason is not None:
-                    raise HarnessError(f"offset {seq['offset']} window {index}: invalid placement: {reason}")
+                    raise HarnessError(f"pair {index} (start {pair['start']}): invalid placement: {reason}")
+                # The policy process is idle again; read the counters once it is.
+                instructions = session.counters.instructions() - before_instr
+                cpu_ns = session.counters.cpu_ns() - before_cpu
+                if instructions <= 0 or instructions > CALL_CAP:
+                    raise HarnessError(f"pair {index}: impossible instruction count {instructions}")
+                record["multiplexed"] |= session.counters.multiplexed
                 record["valid"] += 1
-                bal = balancedness(
-                    reply["phy2log"], reply["logcnt"], windows[index + 1]["load"], cfg["num_gpus"]
-                )
-                record["calls"].append(
-                    {"offset": seq["offset"], "window": index, "cost": cost, "balancedness": bal,
-                     "counts": reply["counts"]}
-                )
-                digests.append(digest(reply))
-        # Unmetered replay: outputs must be identical (determinism) and the
-        # host CPU time is kept as an unscored diagnostic.
-        position = 0
-        for seq in sequences:
-            reply = session.request({"cmd": "load"}, LOAD_TIMEOUT_S)
-            if not reply.get("ok"):
-                raise HarnessError(str(reply.get("error", "reload failed")))
-            windows = seq["windows"]
-            for index in range(len(windows) - 1):
-                request = {"cmd": "call", "metered": False, "load": windows[index]["load"], **cfg}
-                reply = session.request(request, CALL_TIMEOUT_S)
-                if not reply.get("ok"):
-                    raise HarnessError(f"unmetered replay failed: {reply.get('error', 'call failed')}")
-                if digest(reply) != digests[position]:
-                    raise HarnessError("policy output is not deterministic (metered and unmetered runs differ)")
-                cpu_ns = reply.get("cpu_ns")
-                record["cpu_ns"].append(float(cpu_ns) if isinstance(cpu_ns, (int, float)) else 0.0)
-                position += 1
-    except HarnessError as exc:
-        record["failure"] = str(exc)
-    finally:
-        session.close()
+                record["calls"].append({
+                    "pair": index, "start": pair["start"], "instructions": instructions,
+                    "cpu_ns": cpu_ns,
+                    "balancedness": balancedness(phy2log, logcnt, pair["next_load"], cfg, num_layers, num_experts),
+                })
+            except HarnessError as exc:
+                record["failure"] = str(exc)
+                break
+            finally:
+                if session is not None:
+                    session.close()
     return record
 
 
@@ -341,13 +463,13 @@ def summarize(record: dict, anchor: dict | None) -> tuple[dict, str | None]:
     calls = record["calls"]
     total = record["total_calls"]
     failure = record["failure"]
-    costs = [c["cost"] for c in calls]
+    instr = [c["instructions"] for c in calls]
     bals = [c["balancedness"] for c in calls]
-    mean_cost = sum(costs) / len(costs) if costs else COST_CAP
+    cpu = [c["cpu_ns"] for c in calls]
+    mean_instr = sum(instr) / len(instr) if instr else CALL_CAP
     mean_bal = sum(bals) / len(bals) if bals else 0.0
-    cpu = record["cpu_ns"]
     metrics = {
-        "mean_rebalance_cost": mean_cost,
+        "mean_rebalance_instructions": mean_instr,
         "worst_window_balancedness": min(bals) if bals else 0.0,
         "valid_fraction": record["valid"] / total if total else 0.0,
         "diagnostic_cpu_ms_per_rebalance": (sum(cpu) / len(cpu) / 1e6) if cpu else 0.0,
@@ -361,11 +483,11 @@ def summarize(record: dict, anchor: dict | None) -> tuple[dict, str | None]:
                 f"{BALANCE_TOLERANCE} below the frontier reference ({anchor['balancedness']:.4f})"
             )
     if failure is None and len(calls) != total:
-        failure = "not every rebalance window was scored"
+        failure = "not every rebalance pair was scored"
     if failure is None:
         metrics["balancedness"] = mean_bal
         metrics["speedup_vs_frontier_reference"] = (
-            anchor["mean_cost"] / mean_cost if anchor is not None else 1.0
+            anchor["mean_instructions"] / mean_instr if anchor is not None else 1.0
         )
         metrics["run_failed"] = 0.0
     else:
@@ -373,6 +495,12 @@ def summarize(record: dict, anchor: dict | None) -> tuple[dict, str | None]:
         metrics["worst_window_balancedness"] = 0.0
         metrics["run_failed"] = 1.0
     return metrics, failure
+
+
+def failed_metrics(total: int) -> dict:
+    return {**SCORED_WORST, "mean_rebalance_instructions": CALL_CAP, "worst_window_balancedness": 0.0,
+            "valid_fraction": 0.0, "diagnostic_cpu_ms_per_rebalance": 0.0, "num_rebalances": float(total),
+            "run_failed": 1.0}
 
 
 def discover_policies(outputs_dir: Path) -> dict[str, Path]:
@@ -386,6 +514,13 @@ def discover_policies(outputs_dir: Path) -> dict[str, Path]:
     return found
 
 
+def write_scores(out: Path, payload: dict) -> None:
+    out.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out.with_suffix(".tmp")
+    tmp.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+    tmp.replace(out)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--outputs-dir", default=str(ROOT / "outputs" / "eplb"))
@@ -395,60 +530,77 @@ def main() -> None:
     args = parser.parse_args()
 
     workload = json.loads(WINDOWS_PATH.read_text())
+    total = len(workload["pairs"])
     log_dir = Path(args.log_dir) if args.log_dir else Path(tempfile.mkdtemp(prefix="eplb_logs_"))
     log_dir.mkdir(parents=True, exist_ok=True)
+    out = Path(args.scores)
+    policies = discover_policies(Path(args.outputs_dir))
 
-    print(f"[{SLICE}] running frozen anchor {ANCHOR_NAME}", flush=True)
-    anchor_record = run_policy(ANCHOR_PATH, workload, log_dir)
-    if anchor_record["failure"] is not None:
-        raise SystemExit(f"anchor policy failed: {anchor_record['failure']} (logs in {log_dir})")
-    anchor = {
-        "mean_cost": sum(c["cost"] for c in anchor_record["calls"]) / len(anchor_record["calls"]),
-        "balancedness": sum(c["balancedness"] for c in anchor_record["calls"]) / len(anchor_record["calls"]),
-    }
-
-    results: dict[str, dict] = {}
-    failures: dict[str, str] = {}
-    details: dict[str, dict] = {"_anchor": anchor_record}
-    for name, path in discover_policies(Path(args.outputs_dir)).items():
-        started = time.monotonic()
-        record = run_policy(path, workload, log_dir)
-        metrics, failure = summarize(record, anchor)
-        results[name] = metrics
-        details[name] = record
-        if failure is not None:
-            failures[name] = failure
-        status = "FAILED: " + failure if failure else "ok"
-        print(
-            f"[{SLICE}] {name}: speedup={metrics['speedup_vs_frontier_reference']:.4f} "
-            f"balancedness={metrics['balancedness']:.4f} ({time.monotonic() - started:.0f}s) {status}",
-            flush=True,
-        )
-
+    # Until a policy has been scored it stands as failed, so an interrupted
+    # evaluation never leaves stale or missing results behind.
+    results = {name: failed_metrics(total) for name in policies}
+    failures = {name: "evaluation did not complete" for name in policies}
     payload = {
         "_slice": {
             "name": SLICE,
-            "windows": "visible (even) MoE layers of the paper's trace, 4 window offsets",
-            "num_rebalances_per_method": sum(len(s["windows"]) - 1 for s in workload["sequences"]),
+            "windows": "visible (even) MoE layers in time blocks 0 and 2 of the paper's trace",
+            "num_rebalances_per_method": total,
         },
-        "_anchor": {"name": ANCHOR_NAME, **anchor},
-        "_work_measure": {
-            "units_per_bytecode": W_INSTRUCTION,
-            "units_per_c_call": W_C_CALL,
-            "units_per_scanned_python_element": W_PY_ELEMENT,
-            "units_per_torch_kernel": W_KERNEL,
-            "units_per_tensor_element": W_TENSOR_ELEMENT,
-            "per_rebalance_cap": COST_CAP,
+        "_measurement": {
+            "work": "retired user-space instructions of the policy process tree (hardware counter)",
+            "instruction_cap_per_rebalance": CALL_CAP,
             "balance_tolerance_vs_anchor": BALANCE_TOLERANCE,
         },
         "_failures": failures,
         "experiments": {EXPERIMENT: {"results": results}},
     }
-    out = Path(args.scores)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    tmp = out.with_suffix(".tmp")
-    tmp.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
-    tmp.replace(out)
+    write_scores(out, payload)
+
+    print(f"[{SLICE}] running frozen anchor {ANCHOR_NAME}", flush=True)
+    try:
+        anchor_record = run_policy(ANCHOR_PATH, workload, log_dir)
+    except MeasurementUnavailable as exc:
+        for name in policies:
+            failures[name] = f"evaluation impossible: {exc}"
+        write_scores(out, payload)
+        raise SystemExit(f"[{SLICE}] cannot measure rebalance work on this host: {exc}")
+    if anchor_record["failure"] is not None or not anchor_record["calls"]:
+        for name in policies:
+            failures[name] = f"anchor policy failed: {anchor_record['failure']}"
+        write_scores(out, payload)
+        raise SystemExit(f"anchor policy failed: {anchor_record['failure']} (logs in {log_dir})")
+    calls = anchor_record["calls"]
+    anchor = {
+        "mean_instructions": sum(c["instructions"] for c in calls) / len(calls),
+        "balancedness": sum(c["balancedness"] for c in calls) / len(calls),
+    }
+    payload["_anchor"] = {"name": ANCHOR_NAME, **anchor}
+    payload["_measurement"]["sandbox"] = anchor_record["sandbox"]
+    payload["_measurement"]["counter_multiplexed"] = anchor_record["multiplexed"]
+
+    details: dict[str, dict] = {"_anchor": anchor_record}
+    for name, path in policies.items():
+        started = time.monotonic()
+        record = run_policy(path, workload, log_dir)
+        metrics, failure = summarize(record, anchor)
+        results[name] = metrics
+        details[name] = record
+        if failure is None:
+            failures.pop(name, None)
+        else:
+            failures[name] = failure
+        payload["_measurement"]["counter_multiplexed"] |= record["multiplexed"]
+        write_scores(out, payload)
+        status = "FAILED: " + failure if failure else "ok"
+        print(
+            f"[{SLICE}] {name}: speedup={metrics['speedup_vs_frontier_reference']:.4f} "
+            f"balancedness={metrics['balancedness']:.4f} "
+            f"instr={metrics['mean_rebalance_instructions']:.4g} "
+            f"({time.monotonic() - started:.0f}s) {status}",
+            flush=True,
+        )
+
+    write_scores(out, payload)
     if args.details:
         Path(args.details).write_text(json.dumps(details, separators=(",", ":")) + "\n")
     print(f"[{SLICE}] wrote {out} ({len(results)} methods, {len(failures)} failed)", flush=True)

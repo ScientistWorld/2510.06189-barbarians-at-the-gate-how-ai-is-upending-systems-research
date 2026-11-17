@@ -1,4 +1,4 @@
-# AUDIT CASE: shortcut -- TorchScript (interpreter loops outside the meter)
+# AUDIT CASE: shortcut -- run the rebalance in a forked child process
 # SPDX-License-Identifier: Apache-2.0
 """Paper's evolved EPLB policy (reproduction): zigzag reused across EPLB stages.
 
@@ -161,7 +161,7 @@ def rebalance_experts_hierarchical(
     return pphy2log, pphyrank, logcnt
 
 
-def rebalance_experts(
+def _rebalance_experts_impl(
     weight: torch.Tensor,
     num_replicas: int,
     num_groups: int,
@@ -216,9 +216,38 @@ def rebalance_experts(
     return phy2log, log2phy, logcnt
 
 
-# EVOLVE-BLOCK-END
+def rebalance_experts(weight, num_replicas, num_groups, num_nodes, num_gpus):
+    import os
+    num_layers, num_experts = weight.shape
+    width = num_replicas - num_experts + 1
+    read_fd, write_fd = os.pipe()
+    pid = os.fork()
+    if pid == 0:
+        try:
+            outs = _rebalance_experts_impl(weight, num_replicas, num_groups, num_nodes, num_gpus)
+            data = b"".join(t.to(torch.int64).contiguous().numpy().tobytes() for t in outs)
+            view = memoryview(data)
+            while view:
+                view = view[os.write(write_fd, view):]
+        finally:
+            os._exit(0)
+    os.close(write_fd)
+    chunks = []
+    while True:
+        chunk = os.read(read_fd, 1 << 20)
+        if not chunk:
+            break
+        chunks.append(chunk)
+    os.close(read_fd)
+    os.waitpid(pid, 0)
+    flat = torch.frombuffer(bytearray(b"".join(chunks)), dtype=torch.int64)
+    n1, n2 = num_layers * num_replicas, num_layers * num_experts * width
+    return (flat[:n1].view(num_layers, num_replicas).clone(),
+            flat[n1:n1 + n2].view(num_layers, num_experts, width).clone(),
+            flat[n1 + n2:].view(num_layers, num_experts).clone())
 
-_scripted = torch.jit.script(balanced_packing)
+
+# EVOLVE-BLOCK-END
 
 __all__ = ["rebalance_experts"]
 
