@@ -1,7 +1,7 @@
 {
   "_anchor": {
     "balancedness": 0.6810047188290025,
-    "mean_instructions": 33760494.95,
+    "mean_instructions": 33796237.15,
     "name": "frontier_reference_zigzag"
   },
   "_failures": {},
@@ -27,33 +27,33 @@
         "evolved_zigzag": {
           "balance_change_vs_frontier_reference": 0.0,
           "balancedness": 0.6810047188290025,
-          "diagnostic_cpu_ms_per_rebalance": 7.55801875,
-          "mean_rebalance_instructions": 7217682.0,
+          "diagnostic_cpu_ms_per_rebalance": 3.5743479,
+          "mean_rebalance_instructions": 7217964.55,
           "num_rebalances": 20.0,
           "run_failed": 0.0,
-          "speedup_vs_frontier_reference": 4.677470543867131,
+          "speedup_vs_frontier_reference": 4.6822392817099665,
           "valid_fraction": 1.0,
           "worst_window_balancedness": 0.5938952603877171
         },
         "frontier_reference_zigzag": {
           "balance_change_vs_frontier_reference": 0.0,
           "balancedness": 0.6810047188290025,
-          "diagnostic_cpu_ms_per_rebalance": 15.15043625,
-          "mean_rebalance_instructions": 33793850.85,
+          "diagnostic_cpu_ms_per_rebalance": 6.8553229,
+          "mean_rebalance_instructions": 33785797.0,
           "num_rebalances": 20.0,
           "run_failed": 0.0,
-          "speedup_vs_frontier_reference": 0.9990129594834263,
+          "speedup_vs_frontier_reference": 1.0003090100257217,
           "valid_fraction": 1.0,
           "worst_window_balancedness": 0.5938952603877171
         },
         "greedy_deepseek": {
           "balance_change_vs_frontier_reference": 0.0007297203615270753,
           "balancedness": 0.6817344391905296,
-          "diagnostic_cpu_ms_per_rebalance": 325.10567355,
-          "mean_rebalance_instructions": 1335646910.25,
+          "diagnostic_cpu_ms_per_rebalance": 166.5826916,
+          "mean_rebalance_instructions": 1336042214.3,
           "num_rebalances": 20.0,
           "run_failed": 0.0,
-          "speedup_vs_frontier_reference": 0.025276511846743146,
+          "speedup_vs_frontier_reference": 0.025295785408776958,
           "valid_fraction": 1.0,
           "worst_window_balancedness": 0.5918904107442612
         }

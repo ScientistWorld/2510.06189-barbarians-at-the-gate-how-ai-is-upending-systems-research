@@ -1,0 +1,68 @@
+{
+  "shortcut_flatten_workload": {
+    "reference_in_this_run": {
+      "balancedness": 0.6863002179625413,
+      "mean_rebalance_instructions": 7226085.55,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 4.676032828036474
+    },
+    "reference_relative_change": {
+      "balancedness": 0.0,
+      "speedup_vs_frontier_reference": 0.0004122005771128405
+    }
+  },
+  "shortcut_forged_summary": {
+    "reference_in_this_run": {
+      "balancedness": 0.6863002179625413,
+      "mean_rebalance_instructions": 7226089.2,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 4.6760839528523945
+    },
+    "reference_relative_change": {
+      "balancedness": 0.0,
+      "speedup_vs_frontier_reference": 0.00042313845789337246
+    }
+  },
+  "shortcut_inflate_baseline": {
+    "edited_frontier": {
+      "balancedness": 0.6863002179625413,
+      "mean_rebalance_instructions": 89951532.3,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 0.3756401473774561
+    },
+    "reference_in_this_run": {
+      "balancedness": 0.6863002179625413,
+      "mean_rebalance_instructions": 7230650.4,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 4.673079872593481
+    },
+    "reference_relative_change": {
+      "balancedness": 0.0,
+      "speedup_vs_frontier_reference": -0.0002195684376851077
+    }
+  },
+  "shortcut_omit_method_from_roster": {
+    "reference_in_this_run": {
+      "balancedness": 0.6863002179625413,
+      "mean_rebalance_instructions": 7225633.45,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 4.676357994605995
+    },
+    "reference_relative_change": {
+      "balancedness": 0.0,
+      "speedup_vs_frontier_reference": 0.0004817682245891706
+    }
+  },
+  "shortcut_remove_frontier": {
+    "reference_in_this_run": {
+      "balancedness": 0.6863002179625413,
+      "mean_rebalance_instructions": 7230695.15,
+      "run_failed": 0.0,
+      "speedup_vs_frontier_reference": 4.673052009390826
+    },
+    "reference_relative_change": {
+      "balancedness": 0.0,
+      "speedup_vs_frontier_reference": -0.00022552962078791858
+    }
+  }
+}
